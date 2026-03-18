@@ -1,0 +1,2523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BPT Exam Suite</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ═══════ DESIGN TOKENS ═══════ */
+:root {
+  --bg:       #080b12;
+  --s0:       #0d1117;
+  --s1:       #111827;
+  --s2:       #1a2235;
+  --s3:       #1f2a3d;
+  --s4:       #243044;
+  --b1:       #1e2d42;
+  --b2:       #2a3f5e;
+  --b3:       #384f72;
+
+  --accent:   #3b82f6;
+  --accent2:  #6366f1;
+  --accent3:  #8b5cf6;
+  --ok:       #10b981;
+  --warn:     #f59e0b;
+  --bad:      #ef4444;
+  --info:     #06b6d4;
+
+  --tx:       #f1f5f9;
+  --tx2:      #94a3b8;
+  --tx3:      #64748b;
+  --tx4:      #475569;
+
+  --sidebar:  240px;
+  --r:        8px;
+  --r2:       12px;
+  --r3:       16px;
+  --r4:       20px;
+
+  --glow:     rgba(59,130,246,.15);
+  --glow2:    rgba(99,102,241,.12);
+}
+
+/* ═══════ RESET ═══════ */
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+a{color:var(--accent);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* ═══════ LAYOUT ═══════ */
+.app{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--s0);
+  border-right:1px solid var(--b1);display:flex;flex-direction:column;
+  position:relative;z-index:10;}
+.main{flex:1;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column;}
+.panel{display:none;flex:1;animation:fadeIn .2s ease;}
+.panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.panel-inner{max-width:900px;margin:0 auto;padding:2rem 1.75rem 6rem;}
+
+/* ═══════ SIDEBAR ═══════ */
+.sb-brand{padding:1.25rem 1.1rem 1rem;border-bottom:1px solid var(--b1);}
+.sb-brand-row{display:flex;align-items:center;gap:10px;}
+.sb-logo-mark{width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-brand-name{font-size:.88rem;font-weight:700;color:var(--tx);letter-spacing:-.3px;}
+.sb-brand-sub{font-size:.62rem;color:var(--tx3);margin-top:1px;}
+.sb-conn{display:flex;align-items:center;gap:5px;margin-top:.5rem;}
+.sb-conn-dot{width:6px;height:6px;border-radius:50%;background:var(--tx4);transition:background .3s;}
+.sb-conn-dot.ok{background:var(--ok);}
+.sb-conn-label{font-size:.62rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;}
+
+.sb-user{padding:.65rem 1.1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:9px;cursor:pointer;transition:background .15s;}
+.sb-user:hover{background:var(--s2);}
+.sb-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;font-family:'JetBrains Mono',monospace;flex-shrink:0;transition:all .2s;}
+.sb-uname{font-size:.78rem;font-weight:600;color:var(--tx);}
+.sb-usub{font-size:.6rem;color:var(--tx3);}
+
+.sb-nav{flex:1;overflow-y:auto;padding:.5rem 0;}
+.nav-section{font-size:.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--tx4);padding:.65rem 1.1rem .2rem;font-family:'JetBrains Mono',monospace;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:.55rem 1.1rem;cursor:pointer;
+  font-size:.8rem;color:var(--tx2);transition:all .15s;border-left:2px solid transparent;
+  position:relative;white-space:nowrap;}
+.nav-item:hover{color:var(--tx);background:var(--s2);}
+.nav-item.active{color:var(--tx);background:var(--s2);border-left-color:var(--accent);}
+.nav-item.active::before{content:'';position:absolute;left:-1px;top:0;bottom:0;width:2px;
+  background:var(--accent);border-radius:1px;}
+.nav-item .ni{width:18px;text-align:center;font-size:13px;}
+.nav-badge{margin-left:auto;background:var(--accent);color:white;border-radius:10px;
+  font-size:.58rem;padding:1px 6px;font-family:'JetBrains Mono',monospace;}
+.nav-sep{height:1px;background:var(--b1);margin:.4rem .8rem;}
+
+.sb-foot{padding:.75rem 1.1rem;border-top:1px solid var(--b1);}
+.sb-key-badge{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--tx4);
+  background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:3px 7px;
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  cursor:pointer;transition:all .15s;}
+.sb-key-badge:hover{border-color:var(--b2);color:var(--tx3);}
+
+/* ═══════ PAGE HEADERS ═══════ */
+.ph{margin-bottom:1.75rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;}
+.ph-left h2{font-size:1.4rem;font-weight:700;letter-spacing:-.5px;margin-bottom:.2rem;}
+.ph-left p{font-size:.82rem;color:var(--tx2);}
+.ph-actions{display:flex;gap:.6rem;align-items:center;flex-shrink:0;}
+
+/* ═══════ CARDS ═══════ */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:1.4rem;margin-bottom:1rem;}
+.card:hover{border-color:var(--b2);}
+.card-label{font-family:'JetBrains Mono',monospace;font-size:.65rem;text-transform:uppercase;
+  letter-spacing:2px;color:var(--accent);margin-bottom:.85rem;}
+.card h3{font-size:.95rem;font-weight:600;margin-bottom:.3rem;}
+.card p{font-size:.82rem;color:var(--tx2);line-height:1.65;}
+.card-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+
+/* ═══════ STAT TILES ═══════ */
+.tile-grid{display:grid;gap:10px;margin-bottom:1rem;}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g2{grid-template-columns:repeat(2,1fr);}
+.tile{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r2);padding:1rem;text-align:center;transition:all .2s;}
+.tile:hover{border-color:var(--b2);background:var(--s3);}
+.tile .tl{font-size:.62rem;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem;}
+.tile .tv{font-size:1.6rem;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;}
+.tv.blue{color:var(--accent);}
+.tv.green{color:var(--ok);}
+.tv.red{color:var(--bad);}
+.tv.pur{color:var(--accent2);}
+.tv.warn{color:var(--warn);}
+.tile .ttrend{font-size:.65rem;color:var(--tx3);margin-top:3px;}
+
+/* ═══════ INPUTS ═══════ */
+label{display:block;font-size:.75rem;font-weight:500;color:var(--tx2);margin-bottom:.3rem;margin-top:.85rem;}
+label:first-child{margin-top:0;}
+input[type=text],input[type=password],input[type=date],input[type=number],select,textarea{
+  width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);
+  color:var(--tx);font-family:'Inter',sans-serif;font-size:.82rem;
+  padding:.55rem .85rem;transition:all .15s;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+input::placeholder{color:var(--tx4);}
+textarea{resize:vertical;min-height:90px;line-height:1.55;}
+select option{background:var(--s2);}
+.g2-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.kw{position:relative;}
+.kw input{padding-right:2.5rem;}
+.kt{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--tx3);cursor:pointer;font-size:.72rem;padding:2px 4px;}
+.kt:hover{color:var(--tx);}
+
+/* ═══════ BUTTONS ═══════ */
+.btn{padding:.58rem 1.2rem;border:none;border-radius:var(--r);cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;
+  transition:all .18s;display:inline-flex;align-items:center;gap:6px;
+  letter-spacing:-.1px;position:relative;overflow:hidden;white-space:nowrap;}
+.btn::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity .15s;}
+.btn:hover::after{opacity:.06;}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+.btn-p{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;box-shadow:0 2px 8px rgba(59,130,246,.25);}
+.btn-ok{background:linear-gradient(135deg,var(--ok),#059669);color:white;box-shadow:0 2px 8px rgba(16,185,129,.2);}
+.btn-warn{background:rgba(245,158,11,.12);color:var(--warn);border:1px solid rgba(245,158,11,.3);}
+.btn-ghost{background:var(--s2);color:var(--tx);border:1px solid var(--b2);}
+.btn-ghost:hover{border-color:var(--b3);}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--bad);border:1px solid rgba(239,68,68,.25);}
+.btn-sm{padding:.4rem .85rem;font-size:.75rem;}
+.btn-lg{padding:.75rem 1.75rem;font-size:.9rem;}
+.btn-full{width:100%;justify-content:center;}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:var(--r);
+  background:var(--s2);color:var(--tx2);border:1px solid var(--b1);}
+.btn-icon:hover{color:var(--tx);border-color:var(--b2);}
+.btn-row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:1rem;}
+
+/* ═══════ CHIPS ═══════ */
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:.4rem;}
+.chip{padding:4px 11px;border-radius:20px;border:1px solid var(--b2);background:var(--s2);
+  color:var(--tx2);cursor:pointer;font-size:.75rem;font-weight:500;transition:all .15s;user-select:none;}
+.chip:hover{border-color:var(--b3);color:var(--tx);}
+.chip.on{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.1);}
+
+/* ═══════ STATUS / TOAST ═══════ */
+.status{border-radius:var(--r);padding:.65rem .9rem;font-size:.8rem;
+  margin-top:.65rem;display:none;line-height:1.5;font-weight:500;}
+.status.show{display:flex;align-items:flex-start;gap:.5rem;}
+.st-info{background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);color:var(--info);}
+.st-ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--ok);}
+.st-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--bad);}
+.st-warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--warn);}
+
+/* Toast system */
+#toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none;}
+.toast{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r2);padding:.75rem 1rem;
+  font-size:.82rem;font-weight:500;display:flex;align-items:center;gap:.6rem;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:all;
+  animation:toastIn .25s ease;max-width:320px;min-width:240px;}
+.toast.removing{animation:toastOut .2s ease forwards;}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(20px)}}
+.toast-ok{border-left:3px solid var(--ok);}
+.toast-err{border-left:3px solid var(--bad);}
+.toast-warn{border-left:3px solid var(--warn);}
+.toast-info{border-left:3px solid var(--info);}
+.toast-close{margin-left:auto;background:none;border:none;color:var(--tx3);cursor:pointer;font-size:14px;padding:0 2px;}
+
+/* ═══════ PROGRESS STEPS ═══════ */
+.psteps{display:flex;flex-direction:column;gap:.6rem;}
+.pstep{display:flex;align-items:center;gap:10px;font-size:.82rem;}
+.pi{width:24px;height:24px;min-width:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:700;transition:all .3s;}
+.pi.wait{background:var(--s3);border:1px solid var(--b2);color:var(--tx4);}
+.pi.run{background:rgba(59,130,246,.12);border:1px solid var(--accent);color:var(--accent);animation:spin 1.5s linear infinite;}
+@keyframes spin{from{box-shadow:0 0 0 0 rgba(59,130,246,.4)}to{box-shadow:0 0 0 6px rgba(59,130,246,0)}}
+.pi.done{background:rgba(16,185,129,.12);border:1px solid var(--ok);color:var(--ok);}
+.pi.err{background:rgba(239,68,68,.12);border:1px solid var(--bad);color:var(--bad);}
+.pt-title{font-weight:500;color:var(--tx);}
+.pt-detail{font-size:.7rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;}
+
+/* ═══════ DROPS ═══════ */
+.drop-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:.65rem;}
+.drop{border:2px dashed var(--b2);border-radius:var(--r2);padding:1.5rem 1rem;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--s2);}
+.drop:hover,.drop.drag{border-color:var(--accent);background:rgba(59,130,246,.05);}
+.drop.loaded{border-color:var(--ok);border-style:solid;background:rgba(16,185,129,.05);}
+.drop h4{font-size:.82rem;font-weight:600;margin-bottom:.2rem;}
+.drop p{font-size:.72rem;color:var(--tx2);}
+.drop.loaded p{color:var(--ok);}
+.drop input{display:none;}
+.drop-icon{font-size:1.4rem;margin-bottom:.45rem;}
+.drop-x{position:absolute;top:6px;right:7px;background:none;border:none;color:var(--tx4);cursor:pointer;font-size:.75rem;transition:color .15s;}
+.drop-x:hover{color:var(--bad);}
+
+/* ═══════ TOPIC BARS ═══════ */
+.topic-row{display:flex;align-items:center;gap:.65rem;margin-bottom:.45rem;}
+.topic-name{font-size:.78rem;min-width:140px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topic-bg{flex:1;height:6px;background:var(--b1);border-radius:3px;overflow:hidden;}
+.topic-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+.topic-stat{font-size:.7rem;font-family:'JetBrains Mono',monospace;color:var(--tx3);min-width:44px;text-align:right;}
+
+/* ═══════ Q LIST ═══════ */
+.q-list{display:flex;flex-direction:column;gap:5px;max-height:300px;overflow-y:auto;}
+.q-row{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);
+  padding:.6rem .85rem;display:flex;align-items:flex-start;gap:9px;font-size:.8rem;transition:border-color .15s;}
+.q-row:hover{border-color:var(--b2);}
+.q-row .qn{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent);min-width:28px;margin-top:1px;}
+.q-row .qt{flex:1;color:var(--tx);line-height:1.4;}
+.q-row .qa{font-size:.65rem;color:var(--ok);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+
+/* ═══════ GENERATE TABS ═══════ */
+.mode-tabs{display:flex;gap:4px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r2);padding:4px;margin-bottom:1rem;}
+.mt{flex:1;padding:.5rem .75rem;border:none;background:transparent;color:var(--tx3);
+  font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;border-radius:var(--r);
+  cursor:pointer;text-align:center;transition:all .15s;}
+.mt.active{background:var(--s3);color:var(--tx);border:1px solid var(--b2);}
+
+/* ═══════ TOPIC GRID (notes) ═══════ */
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px;margin-bottom:1rem;}
+.tg-item{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);
+  padding:.6rem .85rem;cursor:pointer;transition:all .15s;}
+.tg-item:hover{border-color:var(--b3);background:var(--s3);}
+.tg-item.active{border-color:var(--accent);background:rgba(59,130,246,.08);}
+.tg-name{font-size:.8rem;font-weight:500;color:var(--tx);margin-bottom:2px;}
+.tg-count{font-size:.65rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;}
+
+/* ═══════ NOTE CONTENT ═══════ */
+.note-content{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r2);
+  padding:1.25rem;font-size:.82rem;line-height:1.8;color:var(--tx);white-space:pre-wrap;
+  font-family:'Inter',sans-serif;max-height:520px;overflow-y:auto;}
+
+/* ═══════ EXAM ENGINE ═══════ */
+.exam-wrap{position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto;display:none;}
+.exam-wrap.show{display:block;}
+.exam-hdr{position:sticky;top:0;z-index:10;background:rgba(8,11,18,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--b1);padding:.65rem 1.25rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.exam-hdr-title{font-size:.78rem;color:var(--tx2);font-weight:600;letter-spacing:-.2px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* Circular timer */
+.timer-ring{position:relative;width:48px;height:48px;flex-shrink:0;}
+.timer-ring svg{position:absolute;inset:0;transform:rotate(-90deg);}
+.timer-ring-bg{fill:none;stroke:var(--b2);stroke-width:3;}
+.timer-ring-fill{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;
+  stroke-dasharray:138;stroke-dashoffset:0;transition:stroke-dashoffset .9s linear, stroke .3s;}
+.timer-ring-fill.warn{stroke:var(--warn);}
+.timer-ring-fill.danger{stroke:var(--bad);animation:timerPulse 1s ease infinite;}
+.timer-ring-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:600;color:var(--tx);}
+
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.ebtn-pause{background:var(--s2);color:var(--tx2);border:1px solid var(--b1);
+  width:30px;height:30px;border-radius:var(--r);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;}
+.ebtn-pause:hover{border-color:var(--warn);color:var(--warn);}
+.ebtn-close{background:rgba(239,68,68,.1);color:var(--bad);border:1px solid rgba(239,68,68,.2);
+  padding:4px 10px;border-radius:var(--r);cursor:pointer;font-size:.73rem;font-family:'Inter',sans-serif;font-weight:600;transition:all .15s;}
+.ebtn-close:hover{background:rgba(239,68,68,.2);}
+.exam-prog{display:flex;align-items:center;gap:.5rem;font-size:.73rem;color:var(--tx3);}
+.epbar{width:80px;height:4px;background:var(--b1);border-radius:2px;overflow:hidden;display:inline-block;}
+.epfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .3s;}
+
+.exam-body{max-width:780px;margin:0 auto;padding:1.5rem 1.25rem 6rem;}
+.qmap-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:.85rem 1rem;margin-bottom:1rem;}
+.qmap-title{font-family:'JetBrains Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx4);margin-bottom:.5rem;}
+.qmap-grid{display:flex;flex-wrap:wrap;gap:4px;}
+.qdot{width:22px;height:22px;border-radius:4px;background:var(--s2);border:1px solid var(--b1);
+  display:flex;align-items:center;justify-content:center;font-size:8px;
+  font-family:'JetBrains Mono',monospace;color:var(--tx4);cursor:pointer;transition:all .12s;}
+.qdot:hover{border-color:var(--b3);}
+.qdot.ans{background:var(--accent);border-color:var(--accent);color:white;}
+.qdot.cur{border-color:var(--warn);color:var(--warn);}
+.qdot.ans.cur{background:var(--warn);border-color:var(--warn);color:white;}
+
+.qcard{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:1.5rem;margin:1rem 0;transition:border-color .15s;}
+.qnum{font-family:'JetBrains Mono',monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem;}
+.qtext{font-size:.92rem;line-height:1.75;white-space:pre-wrap;color:var(--tx);margin-bottom:1.2rem;}
+.emq-pre{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:.85rem;
+  margin-bottom:1rem;font-size:.8rem;line-height:1.65;font-family:'JetBrains Mono',monospace;color:var(--tx2);}
+.opts{display:flex;flex-direction:column;gap:.45rem;}
+.opt{display:flex;align-items:flex-start;gap:.75rem;padding:.72rem .9rem;background:var(--s2);
+  border:1.5px solid var(--b1);border-radius:var(--r);cursor:pointer;transition:all .13s;
+  font-size:.87rem;line-height:1.55;text-align:left;width:100%;color:var(--tx);
+  font-family:'Inter',sans-serif;}
+.opt:hover{border-color:var(--b3);background:var(--s3);}
+.opt.sel{border-color:var(--accent);background:rgba(59,130,246,.08);}
+.opt.correct{border-color:var(--ok);background:rgba(16,185,129,.08);}
+.opt.wrong-sel{border-color:var(--bad);background:rgba(239,68,68,.08);}
+.opt-l{width:21px;height:21px;min-width:21px;border-radius:50%;background:var(--s3);
+  display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;
+  font-size:9px;font-weight:700;color:var(--tx4);transition:all .13s;flex-shrink:0;}
+.opt.sel .opt-l{background:var(--accent);color:white;}
+.opt.correct .opt-l{background:var(--ok);color:white;}
+.opt.wrong-sel .opt-l{background:var(--bad);color:white;}
+.sec-sep{background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.15);
+  border-radius:var(--r);padding:.45rem .85rem;margin-bottom:1.1rem;
+  font-size:.72rem;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+.ai-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:3px;
+  font-size:.6rem;font-family:'JetBrains Mono',monospace;font-weight:600;}
+.ai-h{background:rgba(16,185,129,.1);color:var(--ok);}
+.ai-m{background:rgba(245,158,11,.1);color:var(--warn);}
+.ai-l{background:rgba(239,68,68,.1);color:var(--bad);}
+
+.qnav{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin-top:.5rem;}
+.enav-btn{background:var(--s1);color:var(--tx);border:1px solid var(--b1);
+  padding:.52rem 1.2rem;border-radius:var(--r);cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;transition:all .15s;}
+.enav-btn:hover{border-color:var(--b2);background:var(--s2);}
+.enav-btn:disabled{opacity:.3;cursor:not-allowed;}
+.esub-btn{background:linear-gradient(135deg,var(--ok),#059669);color:white;border:none;
+  padding:.52rem 1.5rem;border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif;
+  font-size:.82rem;font-weight:600;transition:all .15s;box-shadow:0 2px 8px rgba(16,185,129,.2);}
+.esub-btn:hover{opacity:.9;}
+
+/* Pause overlay */
+.pause-ov{display:none;position:fixed;inset:0;background:rgba(8,11,18,.97);backdrop-filter:blur(16px);
+  z-index:600;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1.25rem;}
+.pause-ov.show{display:flex;animation:fadeIn .2s ease;}
+.pause-time-big{font-family:'JetBrains Mono',monospace;font-size:3.5rem;font-weight:700;
+  color:var(--warn);letter-spacing:-2px;line-height:1;}
+.resume-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:none;
+  padding:.9rem 2.5rem;border-radius:50px;font-size:.95rem;font-weight:700;cursor:pointer;
+  font-family:'Inter',sans-serif;box-shadow:0 4px 16px rgba(59,130,246,.3);letter-spacing:-.2px;}
+
+/* Modal */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;z-index:700;}
+.modal-ov.show{display:flex;animation:fadeIn .2s ease;}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r3);
+  padding:1.75rem;max-width:400px;width:90%;text-align:center;
+  box-shadow:0 24px 64px rgba(0,0,0,.6);}
+.modal h3{font-size:1rem;font-weight:700;margin-bottom:.5rem;letter-spacing:-.3px;}
+.modal p{color:var(--tx2);font-size:.82rem;margin-bottom:1.25rem;line-height:1.6;}
+.modal-btns{display:flex;gap:.6rem;justify-content:center;}
+.mbtn-c{background:var(--s2);color:var(--tx);border:1px solid var(--b2);
+  padding:.58rem 1.2rem;border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;}
+.mbtn-s{background:linear-gradient(135deg,var(--ok),#059669);color:white;border:none;
+  padding:.58rem 1.4rem;border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;}
+
+/* Exam results */
+.er-hdr{text-align:center;padding:2.5rem 1.5rem;border-bottom:1px solid var(--b1);
+  background:radial-gradient(ellipse at 50% 0%,rgba(59,130,246,.06) 0,transparent 60%);}
+.er-hdr h2{font-size:1.3rem;font-weight:700;letter-spacing:-.5px;margin-bottom:.3rem;}
+.score-ring{position:relative;width:120px;height:120px;margin:1rem auto;}
+.score-ring svg{position:absolute;inset:0;transform:rotate(-90deg);}
+.sr-bg{fill:none;stroke:var(--b1);stroke-width:8;}
+.sr-fill{fill:none;stroke-width:8;stroke-linecap:round;stroke-dasharray:339;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);}
+.score-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-pct{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;letter-spacing:-1px;}
+.score-sub{font-size:.6rem;color:var(--tx3);}
+.er-meta{display:flex;gap:1.5rem;justify-content:center;margin-top:1.25rem;flex-wrap:wrap;}
+.er-m{text-align:center;}
+.er-ml{font-size:.62rem;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+.er-mv{font-size:1.1rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.rev-q{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:1.25rem;margin-bottom:.85rem;transition:border-color .15s;}
+.rev-q:hover{border-color:var(--b2);}
+.rev-q.rc{border-left:3px solid var(--ok);}
+.rev-q.rw{border-left:3px solid var(--bad);}
+.rev-q.rs{border-left:3px solid var(--tx4);}
+.rev-badge{padding:2px 9px;border-radius:20px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.rb-ok{background:rgba(16,185,129,.1);color:var(--ok);}
+.rb-bad{background:rgba(239,68,68,.1);color:var(--bad);}
+.rb-mu{background:rgba(100,116,139,.1);color:var(--tx3);}
+.rev-ans{padding:.32rem .75rem;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:.75rem;display:inline-block;}
+.ra-y{background:rgba(239,68,68,.08);color:var(--bad);border:1px solid rgba(239,68,68,.2);}
+.ra-c{background:rgba(16,185,129,.08);color:var(--ok);border:1px solid rgba(16,185,129,.2);}
+.exp-box{margin-top:.85rem;background:var(--s2);border-left:2px solid var(--accent2);
+  padding:.75rem .9rem;border-radius:0 5px 5px 0;font-size:.8rem;line-height:1.7;color:var(--tx2);}
+.exp-box strong{color:var(--accent2);font-size:.62rem;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:.4rem;}
+
+/* ═══════ USER SYSTEM ═══════ */
+.user-screen{position:fixed;inset:0;z-index:2000;background:var(--bg);
+  background-image:radial-gradient(ellipse at 20% 20%,rgba(59,130,246,.08) 0,transparent 50%),
+  radial-gradient(ellipse at 80% 80%,rgba(99,102,241,.07) 0,transparent 50%);
+  display:flex;align-items:center;justify-content:center;padding:1.5rem;
+  animation:fadeIn .3s ease;}
+.user-screen.hidden{display:none;}
+.user-box{width:100%;max-width:520px;}
+.user-logo{display:flex;align-items:center;gap:10px;margin-bottom:2rem;}
+.user-logo-mark{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:18px;}
+.user-logo h1{font-size:1.5rem;font-weight:800;letter-spacing:-1px;}
+.user-logo p{font-size:.75rem;color:var(--tx3);}
+.user-subtitle{font-size:.85rem;color:var(--tx2);margin-bottom:1.25rem;}
+.user-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:.85rem;}
+.user-card{background:var(--s1);border:1.5px solid var(--b1);border-radius:var(--r2);
+  padding:.85rem .7rem;text-align:center;cursor:pointer;transition:all .18s;position:relative;}
+.user-card:hover{border-color:var(--b3);background:var(--s2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.user-card.selected{border-color:var(--accent);}
+.user-avatar{width:46px;height:46px;border-radius:50%;margin:0 auto .55rem;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;font-family:'JetBrains Mono',monospace;}
+.user-name-txt{font-size:.8rem;font-weight:600;color:var(--tx);margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.user-meta-txt{font-size:.62rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;}
+.user-card-edit{position:absolute;top:5px;right:5px;width:18px;height:18px;
+  background:var(--s3);border:none;border-radius:4px;cursor:pointer;
+  font-size:9px;color:var(--tx3);display:none;align-items:center;justify-content:center;transition:all .15s;}
+.user-card:hover .user-card-edit{display:flex;}
+.user-card-edit:hover{background:var(--b2);color:var(--tx);}
+.add-user-card{background:var(--s2);border:1.5px dashed var(--b2);border-radius:var(--r2);
+  padding:.85rem .7rem;text-align:center;cursor:pointer;transition:all .18s;}
+.add-user-card:hover{border-color:var(--accent);background:rgba(59,130,246,.05);}
+.au-icon{font-size:1.4rem;color:var(--tx4);margin-bottom:.35rem;}
+.au-label{font-size:.75rem;color:var(--tx3);}
+.nuf{display:none;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:1.25rem;margin-bottom:.85rem;}
+.nuf.show{display:block;animation:fadeIn .2s ease;}
+.color-picks{display:flex;gap:7px;margin-top:.4rem;flex-wrap:wrap;}
+.color-pick{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.color-pick:hover{transform:scale(1.1);}
+.color-pick.sel{border-color:white;box-shadow:0 0 0 2px var(--accent);}
+
+/* ═══════ PASSWORD SCREEN ═══════ */
+.pw-screen{position:fixed;inset:0;z-index:3000;background:var(--bg);
+  background-image:radial-gradient(ellipse at 30% 30%,rgba(59,130,246,.07) 0,transparent 50%);
+  display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+.pw-screen.hidden{display:none;}
+.pw-box{width:100%;max-width:380px;text-align:center;}
+.pw-logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent3));
+  display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 1.5rem;}
+.pw-box h1{font-size:1.4rem;font-weight:800;letter-spacing:-.5px;margin-bottom:.4rem;}
+.pw-box p{font-size:.82rem;color:var(--tx2);margin-bottom:1.75rem;line-height:1.6;}
+.pw-input-wrap{position:relative;margin-bottom:.75rem;}
+.pw-input{width:100%;background:var(--s2);border:1.5px solid var(--b2);border-radius:var(--r2);
+  color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:600;
+  padding:.85rem 1rem;text-align:center;letter-spacing:4px;transition:all .15s;outline:none;}
+.pw-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+.pw-input.shake{animation:shake .4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.pw-input.err-flash{border-color:var(--bad)!important;box-shadow:0 0 0 3px rgba(239,68,68,.15)!important;}
+.pw-hint{font-size:.72rem;color:var(--tx4);margin-top:.4rem;}
+
+/* ═══════ DIAG BOX ═══════ */
+.diag-box{display:none;margin-top:.65rem;background:#030712;border:1px solid var(--b2);
+  border-radius:var(--r);padding:.85rem;font-family:'JetBrains Mono',monospace;
+  font-size:.68rem;color:#4ade80;line-height:1.75;white-space:pre-wrap;
+  max-height:220px;overflow-y:auto;}
+.diag-box.show{display:block;}
+
+/* ═══════ REFRESH / MISC ═══════ */
+.spin{animation:spinAnim .8s linear infinite;}
+@keyframes spinAnim{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.tip{background:var(--s2);border-left:2px solid var(--accent2);border-radius:0 var(--r) var(--r) 0;
+  padding:.6rem .85rem;font-size:.78rem;color:var(--tx2);line-height:1.6;margin-top:.65rem;}
+.sep{height:1px;background:var(--b1);margin:1rem 0;}
+.paper-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  padding:.6rem .85rem;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:.4rem;}
+.paper-row .pr-title{flex:1;font-size:.82rem;font-weight:500;}
+.paper-row .pr-stat{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--tx3);}
+.empty-state{text-align:center;padding:3rem 1rem;}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.4;}
+.empty-title{font-size:.95rem;font-weight:600;color:var(--tx2);margin-bottom:.4rem;}
+.empty-sub{font-size:.8rem;color:var(--tx3);line-height:1.6;margin-bottom:1.25rem;}
+.heatmap-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-top:.65rem;}
+.hm-cell{border-radius:4px;cursor:pointer;transition:opacity .15s;}
+.hm-cell:hover{opacity:.75;}
+
+/* ═══════ IMPORT DOWNLOADS ═══════ */
+.dl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.dl-card{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);
+  padding:.85rem;text-align:center;cursor:pointer;transition:all .18s;}
+.dl-card:hover{border-color:var(--b3);background:var(--s3);transform:translateY(-1px);}
+.dl-card.done-dl{border-color:var(--ok);}
+.dl-icon{font-size:1.3rem;margin-bottom:.4rem;}
+.dl-title{font-size:.78rem;font-weight:600;margin-bottom:2px;}
+.dl-sub{font-size:.65rem;color:var(--tx3);}
+
+/* ═══════ RESPONSIVE ═══════ */
+@media(max-width:700px){
+  .sidebar{display:none;}
+  .tile-grid.g4{grid-template-columns:repeat(2,1fr);}
+  .g2-form,.g3-form,.drop-pair{grid-template-columns:1fr;}
+  .dl-grid{grid-template-columns:1fr 1fr;}
+  .panel-inner{padding:1.25rem 1rem 5rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PASSWORD SCREEN                                     -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="pw-screen" id="pw-screen">
+  <div class="pw-box">
+    <div class="pw-logo">📋</div>
+    <h1>BPT Exam Suite</h1>
+    <p>This app is password protected.<br>Enter the access code to continue.</p>
+    <div class="pw-input-wrap">
+      <input class="pw-input" id="pw-input" type="password" placeholder="••••••••"
+        maxlength="32" onkeydown="if(event.key==='Enter')checkPassword()">
+    </div>
+    <button class="btn btn-p btn-full btn-lg" onclick="checkPassword()">Enter →</button>
+    <div class="pw-hint" id="pw-hint"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- USER PICKER SCREEN                                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="user-screen hidden" id="user-screen">
+  <div class="user-box">
+    <div class="user-logo">
+      <div class="user-logo-mark">📋</div>
+      <div>
+        <h1>BPT Exam Suite</h1>
+        <p>NSW-ACT Trial Exam Series</p>
+      </div>
+    </div>
+    <div class="user-subtitle">Who's studying today?</div>
+    <div class="user-grid" id="user-grid"></div>
+    <div class="nuf" id="nuf">
+      <div class="card-label" style="margin-bottom:.75rem;">New Profile</div>
+      <label>Name</label>
+      <input type="text" id="nuf-name" placeholder="e.g. Alex" maxlength="24"
+        onkeydown="if(event.key==='Enter')createUser()">
+      <label style="margin-top:.75rem;">Colour</label>
+      <div class="color-picks" id="color-picks"></div>
+      <div class="btn-row" style="margin-top:1rem;">
+        <button class="btn btn-p" onclick="createUser()">Create Profile</button>
+        <button class="btn btn-ghost" onclick="hideNUF()">Cancel</button>
+      </div>
+      <div class="status" id="nuf-status"></div>
+    </div>
+    <div class="add-user-card" id="add-user-btn" onclick="showNUF()">
+      <div class="au-icon">＋</div>
+      <div class="au-label">Add Profile</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- MAIN APP                                           -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-row">
+        <div class="sb-logo-mark">📋</div>
+        <div>
+          <div class="sb-brand-name">BPT Suite</div>
+          <div class="sb-brand-sub">Exam Preparation</div>
+        </div>
+      </div>
+      <div class="sb-conn" style="margin-top:.6rem;">
+        <div class="sb-conn-dot" id="conn-dot"></div>
+        <span class="sb-conn-label" id="conn-label">Not connected</span>
+      </div>
+    </div>
+
+    <div class="sb-user" id="sb-user-badge" onclick="showUserScreen()" title="Switch user">
+      <div class="sb-av" id="sb-av" style="background:#1e2d42;color:#64748b;">?</div>
+      <div>
+        <div class="sb-uname" id="sb-uname">Select user</div>
+        <div class="sb-usub">tap to switch</div>
+      </div>
+    </div>
+
+    <div class="sb-nav">
+      <div class="nav-item active" onclick="nav('dashboard')" id="ni-dashboard"><span class="ni">🏠</span>Dashboard</div>
+      <div class="nav-sep"></div>
+      <div class="nav-section">Study</div>
+      <div class="nav-item" onclick="nav('drill')" id="ni-drill"><span class="ni">🎯</span>Drill Mode</div>
+      <div class="nav-item" onclick="nav('generate')" id="ni-generate"><span class="ni">✨</span>Generate</div>
+      <div class="nav-item" onclick="nav('notes')" id="ni-notes"><span class="ni">📖</span>Notes</div>
+      <div class="nav-sep"></div>
+      <div class="nav-section">Data</div>
+      <div class="nav-item" onclick="nav('import')" id="ni-import"><span class="ni">📥</span>Import Exam</div>
+      <div class="nav-item" onclick="nav('analyse')" id="ni-analyse"><span class="ni">📊</span>Analyse</div>
+      <div class="nav-sep"></div>
+      <div class="nav-item" onclick="nav('settings')" id="ni-settings"><span class="ni">⚙</span>Settings</div>
+    </div>
+
+    <div class="sb-foot">
+      <div class="sb-key-badge" id="ant-badge" onclick="nav('settings')" title="Click to manage API keys">
+        Anthropic key not set
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- ════════════════ DASHBOARD ════════════════ -->
+    <div class="panel active" id="panel-dashboard">
+    <div class="panel-inner">
+      <div class="ph">
+        <div class="ph-left">
+          <h2 id="dash-heading">Dashboard</h2>
+          <p id="dash-subheading">Your performance across all exams.</p>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-icon" id="dash-refresh-btn" onclick="refreshDashboard()" title="Refresh data">↻</button>
+          <button class="btn btn-p btn-sm" onclick="nav('drill')">🎯 Start Drill</button>
+        </div>
+      </div>
+
+      <div class="tile-grid g4" id="dash-tiles">
+        <div class="tile"><div class="tl">Questions</div><div class="tv blue" id="d-qcount">—</div></div>
+        <div class="tile"><div class="tl">Papers</div><div class="tv pur" id="d-papers">—</div></div>
+        <div class="tile"><div class="tl">Attempts</div><div class="tv" id="d-attempts">—</div></div>
+        <div class="tile"><div class="tl">Avg Score</div><div class="tv green" id="d-avg">—</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+        <div class="card">
+          <div class="card-label">Weakest Topics</div>
+          <div id="d-weak">
+            <div class="empty-state" style="padding:1.5rem .5rem;">
+              <div class="empty-icon">📊</div>
+              <div class="empty-title">No data yet</div>
+              <div class="empty-sub">Sit an exam to see your weak areas.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">Recent Attempts</div>
+          <div id="d-recent">
+            <div class="empty-state" style="padding:1.5rem .5rem;">
+              <div class="empty-icon">🎯</div>
+              <div class="empty-title">No attempts yet</div>
+              <div class="empty-sub">Your results will appear here.</div>
+              <button class="btn btn-p btn-sm" onclick="nav('import')">Import an Exam →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Topic Heatmap</div>
+        <p style="font-size:.75rem;color:var(--tx2);margin-bottom:.75rem;">Size = questions attempted · Colour = accuracy (green → red)</p>
+        <div id="d-heatmap">
+          <div class="empty-state" style="padding:1.5rem .5rem;">
+            <div class="empty-icon">🗺</div>
+            <div class="empty-title">Heatmap will populate as you practise</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score chart -->
+      <div class="card">
+        <div class="card-label">Score Over Time</div>
+        <div style="position:relative;height:180px;"><canvas id="score-chart"></canvas></div>
+      </div>
+
+    </div>
+    </div>
+
+    <!-- ════════════════ DRILL ════════════════ -->
+    <div class="panel" id="panel-drill">
+    <div class="panel-inner">
+      <div class="ph">
+        <div class="ph-left"><h2>Drill Mode</h2><p>Adaptive practice from your question bank.</p></div>
+        <div class="ph-actions"><button class="btn btn-icon" onclick="loadDrillOptions()" title="Refresh">↻</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Configure Session</div>
+        <div class="g2-form">
+          <div>
+            <label>Source</label>
+            <select id="dr-source" onchange="drSourceChange()">
+              <option value="weak">🎯 Adaptive (my weakest topics)</option>
+              <option value="topic">🏷 Select topics</option>
+              <option value="paper">📄 Specific paper</option>
+              <option value="random">🎲 Random mix</option>
+            </select>
+          </div>
+          <div>
+            <label>Difficulty</label>
+            <select id="dr-diff">
+              <option value="all">All difficulties</option>
+              <option value="hard">Hard only</option>
+              <option value="medium">Medium only</option>
+              <option value="easy">Easy only</option>
+            </select>
+          </div>
+        </div>
+        <div id="dr-topic-row" style="display:none;margin-top:.75rem;">
+          <label>Topics</label>
+          <div class="chip-row" id="dr-topic-chips"></div>
+        </div>
+        <div id="dr-paper-row" style="display:none;margin-top:.75rem;">
+          <label>Paper</label>
+          <select id="dr-paper-sel"></select>
+        </div>
+        <div style="margin-top:.85rem;">
+          <label>Number of questions</label>
+          <input type="number" id="dr-count" value="20" min="5" max="100" style="width:120px;">
+        </div>
+        <div class="status" id="dr-status"></div>
+        <div class="btn-row">
+          <button class="btn btn-p btn-lg" onclick="startDrill()">🎯 Start Drill</button>
+        </div>
+      </div>
+
+      <div class="card" id="dr-last-card">
+        <div class="card-label">Last Session</div>
+        <div id="dr-last">
+          <div class="empty-state" style="padding:1.5rem .5rem;">
+            <div class="empty-icon">🎯</div>
+            <div class="empty-title">No sessions yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ════════════════ GENERATE ════════════════ -->
+    <div class="panel" id="panel-generate">
+    <div class="panel-inner">
+      <div class="ph"><div class="ph-left"><h2>Generate</h2><p>AI-powered question creation and tutoring.</p></div></div>
+
+      <div class="mode-tabs">
+        <button class="mt active" id="gmt-paper" onclick="genMode('paper')">📝 Practice Paper</button>
+        <button class="mt" id="gmt-vignette" onclick="genMode('vignette')">🏥 Vignette → Q</button>
+        <button class="mt" id="gmt-deepdive" onclick="genMode('deepdive')">🔍 Why Was I Wrong?</button>
+      </div>
+
+      <div id="gp-paper">
+        <div class="card">
+          <div class="card-label">Configure Paper</div>
+          <div class="g2-form">
+            <div>
+              <label>Style</label>
+              <select id="gp-type">
+                <option value="mixed">Mixed (Paper A + B)</option>
+                <option value="papera">Paper A — Medical Sciences</option>
+                <option value="paperb">Paper B — Clinical Applications</option>
+              </select>
+            </div>
+            <div>
+              <label>Difficulty</label>
+              <select id="gp-diff">
+                <option value="mixed">Realistic mix</option>
+                <option value="hard">Hard focus</option>
+                <option value="medium">Medium focus</option>
+              </select>
+            </div>
+          </div>
+          <label style="margin-top:.85rem;">Topics</label>
+          <div class="chip-row" id="gp-topic-chips">
+            <span class="chip on" data-t="cardiology" onclick="this.classList.toggle('on')">cardiology</span>
+            <span class="chip on" data-t="pharmacology" onclick="this.classList.toggle('on')">pharmacology</span>
+            <span class="chip on" data-t="haematology" onclick="this.classList.toggle('on')">haematology</span>
+            <span class="chip on" data-t="gastroenterology" onclick="this.classList.toggle('on')">gastroenterology</span>
+            <span class="chip on" data-t="nephrology" onclick="this.classList.toggle('on')">nephrology</span>
+            <span class="chip on" data-t="neurology" onclick="this.classList.toggle('on')">neurology</span>
+            <span class="chip" data-t="endocrinology" onclick="this.classList.toggle('on')">endocrinology</span>
+            <span class="chip" data-t="rheumatology" onclick="this.classList.toggle('on')">rheumatology</span>
+            <span class="chip" data-t="infectious-disease" onclick="this.classList.toggle('on')">infectious disease</span>
+            <span class="chip" data-t="respiratory" onclick="this.classList.toggle('on')">respiratory</span>
+            <span class="chip" data-t="oncology" onclick="this.classList.toggle('on')">oncology</span>
+            <span class="chip" data-t="psychiatry" onclick="this.classList.toggle('on')">psychiatry</span>
+            <span class="chip" data-t="genetics" onclick="this.classList.toggle('on')">genetics</span>
+            <span class="chip" data-t="immunology" onclick="this.classList.toggle('on')">immunology</span>
+            <span class="chip" data-t="dermatology" onclick="this.classList.toggle('on')">dermatology</span>
+            <span class="chip" data-t="statistics" onclick="this.classList.toggle('on')">statistics</span>
+          </div>
+          <div class="g2-form" style="margin-top:.85rem;">
+            <div><label>Questions</label><input type="number" id="gp-count" value="20" min="5" max="50"></div>
+            <div><label>Title</label><input type="text" id="gp-title" placeholder="e.g. Practice Paper 1"></div>
+          </div>
+          <div class="status" id="gp-status"></div>
+          <div class="btn-row"><button class="btn btn-p btn-lg" onclick="generatePaper()">✨ Generate Paper</button></div>
+        </div>
+        <div id="gp-result" style="display:none;">
+          <div class="card">
+            <div class="card-label">Generated — Ready</div>
+            <div class="q-list" id="gp-preview"></div>
+            <div class="btn-row" style="margin-top:1rem;">
+              <button class="btn btn-ok" onclick="launchGeneratedPaper()">▶ Sit This Paper</button>
+              <button class="btn btn-ghost btn-sm" onclick="downloadGenExam()">↓ HTML</button>
+              <button class="btn btn-ghost btn-sm" onclick="downloadGenAnki()">↓ Anki</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="gp-vignette" style="display:none;">
+        <div class="card">
+          <div class="card-label">Paste Clinical Case</div>
+          <p style="margin-bottom:.85rem;">Paste a clinical vignette, grand rounds case, or textbook scenario — Claude converts it into exam-style SBA questions.</p>
+          <label>Clinical case</label>
+          <textarea id="vig-text" rows="8" placeholder="A 58-year-old woman with PMH of RA on methotrexate presents with..."></textarea>
+          <div class="g2-form" style="margin-top:.5rem;">
+            <div><label>Questions</label><input type="number" id="vig-count" value="4" min="2" max="8"></div>
+            <div><label>Difficulty</label><select id="vig-diff"><option value="mixed">Mixed</option><option value="hard">Hard</option><option value="medium">Medium</option></select></div>
+          </div>
+          <div class="status" id="vig-status"></div>
+          <div class="btn-row"><button class="btn btn-p" onclick="vignetteToQuestions()">🏥 Generate Questions</button></div>
+        </div>
+        <div id="vig-result" style="display:none;">
+          <div class="card">
+            <div class="card-label">Questions from Vignette</div>
+            <div class="q-list" id="vig-preview"></div>
+            <div class="btn-row" style="margin-top:1rem;">
+              <button class="btn btn-ok" onclick="launchVignettePaper()">▶ Sit These</button>
+              <button class="btn btn-ghost btn-sm" onclick="saveVignetteToDb()">💾 Save to DB</button>
+              <button class="btn btn-ghost btn-sm" onclick="downloadVigAnki()">↓ Anki</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="gp-deepdive" style="display:none;">
+        <div class="card">
+          <div class="card-label">Question Deep Dive</div>
+          <p style="margin-bottom:.85rem;">Paste a question you got wrong. Claude delivers a full tutorial — decision logic, common traps, a clinical pearl, and 2 follow-up practice questions.</p>
+          <label>Question stem</label>
+          <textarea id="dd-question" rows="5" placeholder="Paste the question text…"></textarea>
+          <label style="margin-top:.75rem;">Options</label>
+          <textarea id="dd-options" rows="4" placeholder="A. Option one&#10;B. Option two&#10;C. Option three&#10;D. Option four"></textarea>
+          <div class="g2-form" style="margin-top:.5rem;">
+            <div><label>I answered</label><select id="dd-chosen"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+            <div><label>Correct was</label><select id="dd-correct"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+          </div>
+          <div class="status" id="dd-status"></div>
+          <div class="btn-row"><button class="btn btn-p" onclick="deepDive()">🔍 Explain This</button></div>
+        </div>
+        <div id="dd-result" style="display:none;">
+          <div class="card">
+            <div class="card-label">Tutorial</div>
+            <div class="note-content" id="dd-content"></div>
+            <div class="btn-row" style="margin-top:.85rem;"><button class="btn btn-ghost btn-sm" onclick="downloadDDAnki()">↓ Anki Card</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ════════════════ NOTES ════════════════ -->
+    <div class="panel" id="panel-notes">
+    <div class="panel-inner">
+      <div class="ph">
+        <div class="ph-left"><h2>Structured Notes</h2><p>One-page clinical references generated by Claude.</p></div>
+        <div class="ph-actions"><button class="btn btn-icon" onclick="loadTopics()" title="Refresh">↻</button></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Select Topic</div>
+        <div class="topic-grid" id="notes-topic-grid"><p style="color:var(--tx3);font-size:.8rem;">Loading…</p></div>
+        <div class="g2-form">
+          <div><label>Or type a custom topic</label><input type="text" id="notes-custom" placeholder="e.g. IgG4-related disease…"></div>
+          <div><label>Style</label><select id="notes-style"><option value="clinical">Clinical reference</option><option value="exam">Exam-focused high yield</option><option value="mechanism">Mechanism-deep</option></select></div>
+        </div>
+        <div class="status" id="notes-status"></div>
+        <div class="btn-row"><button class="btn btn-p" onclick="generateNote()">📖 Generate Notes</button></div>
+      </div>
+      <div id="notes-result" style="display:none;">
+        <div class="card">
+          <div class="card-row" style="margin-bottom:.75rem;">
+            <div class="card-label" style="margin-bottom:0;" id="notes-result-label">—</div>
+            <div style="display:flex;gap:.5rem;">
+              <button class="btn btn-ghost btn-sm" onclick="downloadNote()">↓ Save</button>
+              <button class="btn btn-ghost btn-sm" onclick="noteToAnki()">↓ Anki</button>
+            </div>
+          </div>
+          <div class="note-content" id="notes-content"></div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ════════════════ IMPORT ════════════════ -->
+    <div class="panel" id="panel-import">
+    <div class="panel-inner">
+      <div class="ph"><div class="ph-left"><h2>Import Exam</h2><p>PDF pair → Claude extracts → saves to database → downloads ready.</p></div></div>
+
+      <div id="imp-step0">
+        <div class="card">
+          <div class="card-label">Exam PDFs</div>
+          <div class="drop-pair">
+            <div class="drop" id="drop-q" onclick="document.getElementById('inp-q').click()"
+              ondragover="dragOver(event,'drop-q')" ondragleave="dragLeave('drop-q')" ondrop="drpd(event,'q')">
+              <button class="drop-x" id="clrq" onclick="clrDrop(event,'q')" style="display:none">✕</button>
+              <input type="file" id="inp-q" accept=".pdf" onchange="setF(event,'q')">
+              <div class="drop-icon">📄</div><h4>Question Booklet</h4><p id="qlbl">Click or drag PDF</p>
+            </div>
+            <div class="drop" id="drop-a" onclick="document.getElementById('inp-a').click()"
+              ondragover="dragOver(event,'drop-a')" ondragleave="dragLeave('drop-a')" ondrop="drpd(event,'a')">
+              <button class="drop-x" id="clra" onclick="clrDrop(event,'a')" style="display:none">✕</button>
+              <input type="file" id="inp-a" accept=".pdf" onchange="setF(event,'a')">
+              <div class="drop-icon">📋</div><h4>Answer Booklet</h4><p id="albl">Click or drag PDF</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:.85rem;">
+            <input type="checkbox" id="no-ans" style="width:15px;height:15px;accent-color:var(--accent2);cursor:pointer;" onchange="toggleNA()">
+            <label for="no-ans" style="margin:0;cursor:pointer;font-size:.82rem;">No answer booklet — <span style="color:var(--accent2);">Claude generates answers from medical knowledge</span></label>
+          </div>
+          <div id="na-note" style="display:none;"><div class="tip" style="margin-top:.6rem;border-left-color:var(--accent2);">Claude will reason through each question and flag ambiguous ones with confidence ratings.</div></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Exam Details</div>
+          <div class="g2-form">
+            <div><label>Series</label><input type="text" id="m-series" value="BPT Trial Exam Series"></div>
+            <div><label>Year</label><input type="text" id="m-year" value="2023/24"></div>
+          </div>
+          <div class="g3-form" style="margin-top:.5rem;">
+            <div><label>Paper #</label><input type="number" id="m-paper" value="1" min="1"></div>
+            <div><label>Title</label><input type="text" id="m-title" value="Paper One"></div>
+            <div><label>Date</label><input type="date" id="m-date" value="2023-11-01"></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-p btn-lg" id="btn-imp" onclick="startImport()" disabled>✨ Extract with AI</button>
+        </div>
+      </div>
+
+      <div id="imp-step1" style="display:none;">
+        <div class="card">
+          <div class="card-label">Processing</div>
+          <div class="psteps" style="margin-bottom:1rem;">
+            <div class="pstep"><div class="pi wait" id="pi0">1</div><div><div class="pt-title">Reading PDFs</div><div class="pt-detail" id="pd0">Waiting…</div></div></div>
+            <div class="pstep"><div class="pi wait" id="pi1">2</div><div><div class="pt-title">Claude extraction</div><div class="pt-detail" id="pd1">Waiting…</div></div></div>
+            <div class="pstep"><div class="pi wait" id="pi2">3</div><div><div class="pt-title">Parse & validate</div><div class="pt-detail" id="pd2">Waiting…</div></div></div>
+            <div class="pstep"><div class="pi wait" id="pi3">4</div><div><div class="pt-title">Save to Supabase</div><div class="pt-detail" id="pd3">Waiting…</div></div></div>
+            <div class="pstep"><div class="pi wait" id="pi4">5</div><div><div class="pt-title">Build output files</div><div class="pt-detail" id="pd4">Waiting…</div></div></div>
+          </div>
+          <div class="status" id="imp-status"></div>
+        </div>
+      </div>
+
+      <div id="imp-step2" style="display:none;">
+        <div class="card">
+          <div class="card-label">Import Complete ✓</div>
+          <div class="tile-grid g4" style="margin-bottom:.75rem;">
+            <div class="tile"><div class="tl">Questions</div><div class="tv blue" id="ir-total">—</div></div>
+            <div class="tile"><div class="tl">SBA</div><div class="tv green" id="ir-sba">—</div></div>
+            <div class="tile"><div class="tl">EMQ</div><div class="tv pur" id="ir-emq">—</div></div>
+            <div class="tile"><div class="tl">Images</div><div class="tv warn" id="ir-imgs">—</div></div>
+          </div>
+          <div id="ir-tags" style="margin-bottom:.5rem;"></div>
+          <div id="ir-ai-note"></div>
+        </div>
+        <div id="ir-img-card" style="display:none;" class="card">
+          <div class="card-label">⚠ Images Needed</div>
+          <p style="margin-bottom:.6rem;">Upload images to Supabase Storage → <code style="font-family:'JetBrains Mono',monospace;font-size:.73rem;background:var(--s2);padding:1px 5px;border-radius:3px;">question-images/</code></p>
+          <div id="ir-img-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Downloads</div>
+          <div class="dl-grid" id="dl-grid-main">
+            <div class="dl-card" onclick="dlExam()"><div class="dl-icon">🖥</div><div class="dl-title">HTML Exam</div><div class="dl-sub">Interactive with timer</div></div>
+            <div class="dl-card" onclick="dlJSON()"><div class="dl-icon">📦</div><div class="dl-title">Seed JSON</div><div class="dl-sub">Database backup</div></div>
+            <div class="dl-card" onclick="dlAnki()"><div class="dl-icon">🃏</div><div class="dl-title">Anki Cards</div><div class="dl-sub">Clinical cue cards</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+            <div class="dl-card" id="dl-highyield" onclick="downloadHighYield()"><div class="dl-icon">⚡</div><div class="dl-title">High Yield Deck</div><div class="dl-sub">286 standalone facts</div></div>
+            <div class="dl-card" style="border-color:var(--ok);" onclick="launchImportedExam()"><div class="dl-icon">▶</div><div class="dl-title">Sit Exam Now</div><div class="dl-sub">Launch immediately</div></div>
+          </div>
+          <div class="btn-row" style="margin-top:.85rem;">
+            <button class="btn btn-ghost btn-sm" onclick="resetImport()">↩ Import Another</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ════════════════ ANALYSE ════════════════ -->
+    <div class="panel" id="panel-analyse">
+    <div class="panel-inner">
+      <div class="ph">
+        <div class="ph-left"><h2>Analyse</h2><p>Cross-paper performance, item difficulty, topic frequency.</p></div>
+        <div class="ph-actions"><button class="btn btn-icon" onclick="loadAnalyse()" title="Refresh">↻</button></div>
+      </div>
+      <div class="card"><div class="card-label">Papers in Database</div><div id="an-papers"><p style="color:var(--tx3);font-size:.8rem;">Loading…</p></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="card"><div class="card-label">Topic Frequency</div><div id="an-freq"><p style="color:var(--tx3);font-size:.8rem;">Loading…</p></div></div>
+        <div class="card"><div class="card-label">Hardest Items (your attempts)</div><div id="an-diff"><p style="color:var(--tx3);font-size:.8rem;">Attempt some exams first.</p></div></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Study Plan</div>
+        <p style="font-size:.78rem;color:var(--tx2);margin-bottom:.85rem;">Claude analyses your performance data and generates a targeted 4-week study plan.</p>
+        <div class="status" id="an-plan-status"></div>
+        <div id="an-plan-result" style="display:none;"><div class="note-content" id="an-plan-content"></div></div>
+        <div class="btn-row">
+          <button class="btn btn-p" onclick="generateStudyPlan()">🧠 Generate Study Plan</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadAnalyse()">↻ Refresh</button>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ════════════════ SETTINGS ════════════════ -->
+    <div class="panel" id="panel-settings">
+    <div class="panel-inner">
+      <div class="ph"><div class="ph-left"><h2>Settings</h2><p>API keys, access control, and database setup.</p></div></div>
+
+      <div id="file-protocol-warning" style="display:none;" class="card">
+        <div style="color:var(--warn);font-weight:600;font-size:.85rem;margin-bottom:.5rem;">⚠ Opened as file:// — AI features need HTTP</div>
+        <p>Run: <code style="font-family:'JetBrains Mono',monospace;background:var(--s2);padding:2px 7px;border-radius:4px;">python3 -m http.server 8080</code> then open <strong>http://localhost:8080</strong></p>
+      </div>
+
+      <div class="card">
+        <div class="card-label">App Access Password</div>
+        <p style="margin-bottom:.75rem;">Set a password to protect the app. Anyone opening the URL will need to enter it first.</p>
+        <div class="g2-form">
+          <div><label>New password</label><div class="kw"><input type="password" id="set-app-pw" placeholder="Leave blank to disable"><button class="kt" onclick="tog('set-app-pw')">show</button></div></div>
+          <div><label>Confirm password</label><div class="kw"><input type="password" id="set-app-pw2" placeholder="Repeat password"><button class="kt" onclick="tog('set-app-pw2')">show</button></div></div>
+        </div>
+        <div class="status" id="set-pw-status"></div>
+        <div class="btn-row"><button class="btn btn-ghost" onclick="saveAppPassword()">Save Password</button><button class="btn btn-danger btn-sm" onclick="clearAppPassword()">Remove Password</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Anthropic API Key</div>
+        <p style="margin-bottom:.5rem;">Get yours at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → Billing (add credit) → API Keys → Create Key.</p>
+        <div class="kw"><input type="password" id="set-ant-key" placeholder="sk-ant-api03-…"><button class="kt" onclick="tog('set-ant-key')">show</button></div>
+        <div class="btn-row">
+          <button class="btn btn-p" onclick="saveAntKey()">Save Key</button>
+          <button class="btn btn-ghost" onclick="testAntKey()">Test Key</button>
+        </div>
+        <div class="status" id="set-ant-status"></div>
+        <div class="diag-box" id="ant-diag"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Supabase Connection</div>
+        <label>Project URL</label>
+        <input type="text" id="set-sb-url" value="https://phtlpmhhjhqtcxgsempg.supabase.co">
+        <label>Anon / Public Key <span style="color:var(--tx4);font-size:.68rem;">(starts with eyJhbGci…)</span></label>
+        <div class="kw"><input type="password" id="set-sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"><button class="kt" onclick="tog('set-sb-key')">show</button></div>
+        <div class="btn-row">
+          <button class="btn btn-p" onclick="saveSupabase()">Save & Test</button>
+          <button class="btn btn-ghost" onclick="testSupabase()">Run Diagnostics</button>
+        </div>
+        <div class="status" id="set-sb-status"></div>
+        <div class="diag-box" id="sb-diag"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Database Setup</div>
+        <p style="margin-bottom:.75rem;">Run these SQL scripts in <a href="https://supabase.com/dashboard" target="_blank">Supabase SQL Editor</a> — first time only:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn btn-ghost btn-full" onclick="dlSchema()">↓ schema.sql <span style="font-size:.68rem;color:var(--tx3);">(run first)</span></button>
+          <button class="btn btn-ghost btn-full" onclick="dlMigration()">↓ rls_migration.sql <span style="font-size:.68rem;color:var(--tx3);">(run second)</span></button>
+        </div>
+        <div class="tip" style="margin-top:.65rem;">If you get "already exists" errors — that's fine, the tables are already set up.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Anki Sync</div>
+        <div style="font-size:.82rem;color:var(--tx2);line-height:1.85;">
+          <b style="color:var(--tx);">1.</b> Download <b style="color:var(--tx);">Anki Desktop</b> from apps.ankiweb.net<br>
+          <b style="color:var(--tx);">2.</b> Sign up at <b style="color:var(--tx);">ankiweb.net</b> (free cloud sync)<br>
+          <b style="color:var(--tx);">3.</b> File → Import → select .txt → Basic · Tab · Allow HTML ✓<br>
+          <b style="color:var(--tx);">4.</b> Click Sync → iOS: AnkiMobile (~$35) · Android: AnkiDroid (free)
+        </div>
+      </div>
+    </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- EXAM ENGINE                                 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="exam-wrap" id="exam-wrap">
+  <div class="exam-hdr">
+    <div class="exam-hdr-title" id="ehdr-title">Exam</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="timer-ring" id="timer-ring">
+        <svg viewBox="0 0 44 44"><circle class="timer-ring-bg" cx="22" cy="22" r="22"/><circle class="timer-ring-fill" id="timer-ring-fill" cx="22" cy="22" r="22"/></svg>
+        <div class="timer-ring-text" id="etimer">—</div>
+      </div>
+      <button class="ebtn-pause" id="ebtn-pause" onclick="etogPause()" title="Pause">⏸</button>
+    </div>
+    <div class="exam-prog"><span id="eprog-text">0 / 0</span><div class="epbar"><div class="epfill" id="epfill" style="width:0%"></div></div></div>
+    <button class="ebtn-close" onclick="exitExam()">✕ Exit</button>
+  </div>
+  <div class="exam-body">
+    <div class="qmap-wrap"><div class="qmap-title">Navigator</div><div class="qmap-grid" id="emap-grid"></div></div>
+    <div id="eq-area"></div>
+    <div class="qnav" style="margin-top:.5rem;">
+      <button class="enav-btn" id="eprev" onclick="eNav(-1)">← Prev</button>
+      <button class="esub-btn" onclick="eConfirmSubmit()">Submit Exam</button>
+      <button class="enav-btn" id="enext" onclick="eNav(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<div class="pause-ov" id="pause-ov">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--warn);">Paused</div>
+  <div class="pause-time-big" id="pause-disp">—</div>
+  <h2 style="font-size:1.3rem;font-weight:700;letter-spacing:-.5px;">Timer stopped</h2>
+  <p style="color:var(--tx2);">Your answers are saved.</p>
+  <button class="resume-btn" onclick="etogPause()">▶ Resume</button>
+</div>
+
+<div class="modal-ov" id="emodal">
+  <div class="modal">
+    <h3>Submit Exam?</h3>
+    <p id="emodal-msg"></p>
+    <div class="modal-btns">
+      <button class="mbtn-c" onclick="document.getElementById('emodal').classList.remove('show')">Continue</button>
+      <button class="mbtn-s" onclick="submitExam()">Submit Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="exam-wrap" id="results-wrap" style="z-index:490;">
+  <div class="er-hdr">
+    <div style="font-size:.68rem;color:var(--tx3);letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem;" id="er-subtitle">—</div>
+    <h2 id="er-title">Results</h2>
+    <div class="score-ring">
+      <svg viewBox="0 0 120 120"><circle class="sr-bg" cx="60" cy="60" r="54"/><circle class="sr-fill" id="sr-fill" cx="60" cy="60" r="54" stroke="#3b82f6" stroke-dashoffset="339"/></svg>
+      <div class="score-ring-text"><div class="score-pct" id="er-score-pct">—</div><div class="score-sub">correct</div></div>
+    </div>
+    <div class="er-meta">
+      <div class="er-m"><div class="er-ml">Correct</div><div class="er-mv" style="color:var(--ok);" id="er-c">—</div></div>
+      <div class="er-m"><div class="er-ml">Wrong</div><div class="er-mv" style="color:var(--bad);" id="er-w">—</div></div>
+      <div class="er-m"><div class="er-ml">Skipped</div><div class="er-mv" style="color:var(--accent);" id="er-s">—</div></div>
+      <div class="er-m"><div class="er-ml">Time</div><div class="er-mv" id="er-t">—</div></div>
+    </div>
+    <div style="margin-top:1.25rem;display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="closeResults()">← Back</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportResultsJSON()">↓ Export JSON</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportWrongAnki()">↓ Wrong → Anki</button>
+      <button class="btn btn-p btn-sm" onclick="nav('drill')">🎯 Drill Weak Areas</button>
+    </div>
+  </div>
+  <div style="max-width:780px;margin:0 auto;padding:1.5rem 1.25rem 6rem;" id="er-review"></div>
+</div>
+
+<!-- Confetti canvas -->
+<canvas id="confetti-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:800;display:none;"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+// BPT EXAM SUITE — COMPLETE JS
+// ═══════════════════════════════════════════════════════════
+
+// ── CONFIG ──────────────────────────────────────────────────
+let SB_URL = localStorage.getItem('SB_URL') || 'https://phtlpmhhjhqtcxgsempg.supabase.co';
+let SB_KEY = localStorage.getItem('SB_KEY') || '';
+let ANT_KEY = localStorage.getItem('ANT_KEY') || sessionStorage.getItem('ANT_KEY') || '';
+
+// ── STATE ───────────────────────────────────────────────────
+let currentUser = null;
+let importedQs = [], importMeta = {};
+let pdfQ = null, pdfA = null, b64Q = null, b64A = null;
+let genQs = [], vigQs = [], ddData = {};
+let currentNote = '';
+let selectedColor = null;
+let eQs=[], eAnswers=[], eCurrent=0, eTimer=null, eTimeLeft=0, eTimeUsed=0, ePaused=false, eTitle='', eTotalTime=0;
+let scoreChart = null;
+
+const USER_COLORS = [
+  {bg:'#1e3a5f',tx:'#60a5fa',name:'blue'},
+  {bg:'#2d1b5e',tx:'#a78bfa',name:'purple'},
+  {bg:'#064e3b',tx:'#34d399',name:'green'},
+  {bg:'#78350f',tx:'#fbbf24',name:'amber'},
+  {bg:'#7f1d1d',tx:'#f87171',name:'red'},
+  {bg:'#164e63',tx:'#22d3ee',name:'cyan'},
+  {bg:'#1e1b4b',tx:'#818cf8',name:'indigo'},
+  {bg:'#374151',tx:'#d1d5db',name:'slate'},
+];
+selectedColor = USER_COLORS[0];
+
+const L = ['A','B','C','D','E','F','G','H','I','J'];
+
+// ── HELPERS ─────────────────────────────────────────────────
+const sbH = (x={}) => ({'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,...x});
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const fmt = s => { const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0'); };
+const fmtShort = s => { const m=Math.floor(s/60),sec=s%60; return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0'); };
+
+function dlBlob(c,n,t='text/plain'){const b=new Blob([c],{type:t});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=n;a.click();URL.revokeObjectURL(u);}
+function tog(id){const e=document.getElementById(id);e.type=e.type==='password'?'text':'password';}
+function $(id){return document.getElementById(id);}
+
+async function sbGet(path){
+  const r = await fetch(SB_URL+'/rest/v1/'+path, {headers:sbH()});
+  return r.json();
+}
+async function sbPost(path,data){
+  const r = await fetch(SB_URL+'/rest/v1/'+path, {method:'POST',headers:sbH({'Prefer':'return=representation'}),body:JSON.stringify(data)});
+  return r.json();
+}
+
+function stat(id,type,msg){
+  const el=$(id); if(!el)return;
+  el.className='status show st-'+type;
+  el.innerHTML='<span>'+msg+'</span>';
+}
+function hideStat(id){const el=$(id);if(el)el.classList.remove('show');}
+
+function pi(n,s,d){
+  const ic=$('pi'+n), dt=$('pd'+n);
+  ic.className='pi '+s;
+  ic.textContent=s==='done'?'✓':s==='err'?'✗':(n+1);
+  if(d)dt.textContent=d;
+}
+
+function stripJson(raw){
+  let c=raw.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+  const s=c.indexOf('['),e=c.lastIndexOf(']');
+  if(s===-1||e===-1)throw new Error('No JSON array in response');
+  return JSON.parse(c.slice(s,e+1));
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function toast(msg, type='info', duration=3500){
+  const icons={ok:'✓',err:'✕',warn:'⚠',info:'ℹ'};
+  const el=document.createElement('div');
+  el.className=`toast toast-${type}`;
+  el.innerHTML=`<span style="font-size:14px;">${icons[type]||'ℹ'}</span><span style="flex:1">${msg}</span><button class="toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  $('toast-container').appendChild(el);
+  setTimeout(()=>{el.classList.add('removing');setTimeout(()=>el.remove(),250);},duration);
+}
+
+// ── PASSWORD SYSTEM ──────────────────────────────────────────
+function checkPassword(){
+  const input = $('pw-input');
+  const val = input.value;
+  const stored = localStorage.getItem('app_password');
+  if(!stored){ unlockApp(); return; }
+  if(val === stored){ unlockApp(); }
+  else {
+    input.classList.add('shake','err-flash');
+    $('pw-hint').textContent = 'Incorrect password.';
+    $('pw-hint').style.color = 'var(--bad)';
+    setTimeout(()=>{input.classList.remove('shake','err-flash');input.value='';},500);
+  }
+}
+
+function unlockApp(){
+  $('pw-screen').classList.add('hidden');
+  sessionStorage.setItem('pw_unlocked','1');
+  initApp();
+}
+
+function saveAppPassword(){
+  const pw1 = $('set-app-pw').value;
+  const pw2 = $('set-app-pw2').value;
+  if(!pw1){ stat('set-pw-status','err','Enter a password.'); return; }
+  if(pw1 !== pw2){ stat('set-pw-status','err','Passwords do not match.'); return; }
+  localStorage.setItem('app_password', pw1);
+  $('set-app-pw').value=''; $('set-app-pw2').value='';
+  stat('set-pw-status','ok','✓ Password saved. Visitors will need it to access the app.');
+  toast('Password saved','ok');
+}
+
+function clearAppPassword(){
+  localStorage.removeItem('app_password');
+  $('set-app-pw').value=''; $('set-app-pw2').value='';
+  stat('set-pw-status','ok','Password removed. App is now open access.');
+  toast('Password removed','warn');
+}
+
+// ── USER SYSTEM ──────────────────────────────────────────────
+function getUsers(){ try{return JSON.parse(localStorage.getItem('bpt_users')||'[]');}catch{return[];} }
+function saveUsers(u){ localStorage.setItem('bpt_users',JSON.stringify(u)); }
+function getUserAttempts(uid){ try{return JSON.parse(localStorage.getItem('bpt_att_'+uid)||'[]');}catch{return[];} }
+function saveUserAttempts(uid,a){ localStorage.setItem('bpt_att_'+uid,JSON.stringify(a.slice(0,100))); }
+
+function initUserSystem(){
+  const cp=$('color-picks');
+  if(cp) cp.innerHTML=USER_COLORS.map((c,i)=>`<div class="color-pick${i===0?' sel':''}" style="background:${c.bg};border-color:${i===0?'white':'transparent'}" onclick="pickColor(${i},this)"></div>`).join('');
+  renderUserGrid();
+}
+
+function pickColor(idx,el){
+  selectedColor=USER_COLORS[idx];
+  document.querySelectorAll('.color-pick').forEach(c=>{c.classList.remove('sel');c.style.borderColor='transparent';});
+  el.classList.add('sel'); el.style.borderColor='white';
+}
+
+function renderUserGrid(){
+  const users=getUsers();
+  const grid=$('user-grid'); if(!grid)return;
+  grid.innerHTML=users.map(u=>{
+    const atts=getUserAttempts(u.id);
+    const avg=atts.length?Math.round(atts.reduce((s,a)=>s+a.pct,0)/atts.length):null;
+    return `<div class="user-card" onclick="selectUser('${u.id}')">
+      <button class="user-card-edit" onclick="event.stopPropagation();editUser('${u.id}')" title="Edit">✏</button>
+      <div class="user-avatar" style="background:${u.color.bg};color:${u.color.tx}">${u.name.slice(0,2).toUpperCase()}</div>
+      <div class="user-name-txt">${u.name}</div>
+      <div class="user-meta-txt">${atts.length} att${atts.length!==1?'s':''}${avg!==null?' · '+avg+'%':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function showNUF(){ $('nuf').classList.add('show'); $('add-user-btn').style.display='none'; $('nuf-name').focus(); }
+function hideNUF(){ $('nuf').classList.remove('show'); $('add-user-btn').style.display=''; }
+
+function createUser(){
+  let name=($('nuf-name').value||'').trim();
+  if(!name){stat('nuf-status','err','Enter a name.');return;}
+  const users=getUsers();
+  if(users.some(u=>u.name.toLowerCase()===name.toLowerCase())){stat('nuf-status','err','Name taken.');return;}
+  const u={id:'u_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),name,color:selectedColor,created:new Date().toISOString()};
+  users.push(u); saveUsers(users);
+  $('nuf-name').value='';
+  hideNUF(); hideStat('nuf-status');
+  selectUser(u.id);
+}
+
+function editUser(uid){
+  const users=getUsers();
+  const u=users.find(x=>x.id===uid);
+  if(!u)return;
+  const name=prompt('Rename "'+u.name+'" to:',u.name);
+  if(!name||!name.trim())return;
+  u.name=name.trim();
+  saveUsers(users);
+  renderUserGrid();
+  if(currentUser&&currentUser.id===uid){ currentUser=u; updateSidebarUser(u); sessionStorage.setItem('cur_user',JSON.stringify(u)); }
+  toast('Profile updated','ok');
+}
+
+function selectUser(uid){
+  const u=getUsers().find(x=>x.id===uid);
+  if(!u)return;
+  currentUser=u;
+  sessionStorage.setItem('cur_user',JSON.stringify(u));
+  updateSidebarUser(u);
+  $('user-screen').classList.add('hidden');
+  loadDashboard();
+}
+
+function updateSidebarUser(u){
+  const av=$('sb-av'),nm=$('sb-uname');
+  if(av){av.textContent=u.name.slice(0,2).toUpperCase();av.style.background=u.color.bg;av.style.color=u.color.tx;}
+  if(nm)nm.textContent=u.name;
+}
+
+function showUserScreen(){
+  renderUserGrid();
+  $('user-screen').classList.remove('hidden');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function nav(page){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const panel=$('panel-'+page), ni=$('ni-'+page);
+  if(panel)panel.classList.add('active');
+  if(ni)ni.classList.add('active');
+  if(page==='dashboard')loadDashboard();
+  if(page==='analyse')loadAnalyse();
+  if(page==='notes')loadTopics();
+  if(page==='drill')loadDrillOptions();
+}
+
+// ── SUPABASE ──────────────────────────────────────────────────
+async function testSupabase(){
+  const urlEl=$('set-sb-url'),keyEl=$('set-sb-key'),diagEl=$('sb-diag');
+  if(urlEl&&urlEl.value.trim())SB_URL=urlEl.value.trim();
+  if(keyEl&&keyEl.value.trim())SB_KEY=keyEl.value.trim();
+  if(!SB_KEY){stat('set-sb-status','err','No key set.');updateConnStatus(false,'No key');return;}
+  stat('set-sb-status','info','Testing…');
+  diagEl.classList.add('show'); diagEl.textContent='Running diagnostics…\n';
+  const log=[];
+  log.push('URL: '+SB_URL);
+  log.push('Key: '+SB_KEY.slice(0,16)+'… ('+SB_KEY.length+' chars)');
+  log.push('Format: '+(SB_KEY.startsWith('eyJ')?'✓ JWT':'✗ Not JWT — wrong key type'));
+  log.push('');
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/exam_series?select=id&limit=1',{headers:sbH()});
+    log.push('HTTP: '+r.status+' '+r.statusText);
+    const body=await r.text(); log.push('Body: '+body.slice(0,300));
+    if(r.status===200){
+      localStorage.setItem('SB_URL',SB_URL); localStorage.setItem('SB_KEY',SB_KEY);
+      stat('set-sb-status','ok','✓ Connected!'); updateConnStatus(true,'Connected');
+      log.push('\n✓ Connected successfully');
+      toast('Supabase connected','ok');
+    } else if(r.status===401){ stat('set-sb-status','err','401 — Wrong key'); updateConnStatus(false,'Auth failed'); }
+    else if(r.status===404){ stat('set-sb-status','err','404 — Run schema.sql first'); updateConnStatus(false,'No schema'); }
+    else { stat('set-sb-status','err','Error '+r.status); updateConnStatus(false,'Error '+r.status); }
+  }catch(e){
+    log.push('Fetch error: '+e.message);
+    stat('set-sb-status','err','Network error: '+e.message); updateConnStatus(false,'Error');
+  }
+  diagEl.textContent=log.join('\n');
+}
+
+function saveSupabase(){
+  const url=($('set-sb-url').value||'').trim();
+  const key=($('set-sb-key').value||'').trim();
+  if(!url||!key){stat('set-sb-status','err','Both fields required.');return;}
+  SB_URL=url; SB_KEY=key;
+  localStorage.setItem('SB_URL',url); localStorage.setItem('SB_KEY',key);
+  testSupabase();
+}
+
+function updateConnStatus(ok,label){
+  const d=$('conn-dot'),l=$('conn-label');
+  if(d)d.className='sb-conn-dot'+(ok?' ok':'');
+  if(l)l.textContent=label;
+}
+
+// ── ANTHROPIC API ─────────────────────────────────────────────
+async function claudeCall(messages, maxTok=8000){
+  if(!ANT_KEY)throw new Error('No API key — go to Settings and save your Anthropic key');
+  if(window.location.protocol==='file:')throw new Error('Open over HTTP, not file:// — see Settings');
+  const cleanKey=ANT_KEY.replace(/[\s\u200B\u200C\u200D\uFEFF\u00A0]/g,'');
+  if(!cleanKey.startsWith('sk-ant-'))throw new Error('Key format wrong — must start with sk-ant-');
+  for(let attempt=0;attempt<3;attempt++){
+    let r;
+    try{
+      r=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':cleanKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:maxTok,messages})
+      });
+    }catch(e){
+      if(attempt<2){await sleep(3000*(attempt+1));continue;}
+      throw new Error('Network blocked — try in Incognito or check firewall. Details: '+e.message);
+    }
+    if(r.status===429||r.status===529){
+      const wait=attempt===0?62:95;
+      if(attempt<2){
+        document.querySelectorAll('.status.show.st-info span').forEach(el=>{el.textContent=`⏳ Rate limited — auto-retrying in ${wait}s (attempt ${attempt+2}/3)…`;});
+        toast(`Rate limited — retrying in ${wait}s`,'warn',wait*1000);
+        await sleep(wait*1000); continue;
+      }
+      throw new Error('Rate limit exceeded. Wait 2 minutes then try again.');
+    }
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+r.status);}
+    const d=await r.json();
+    return d.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+  }
+}
+
+function saveAntKey(){
+  let k=($('set-ant-key').value||'').replace(/[\s\u200B\u200C\u200D\uFEFF\u00A0]/g,'');
+  if(!k){stat('set-ant-status','err','Enter a key first.');return;}
+  if(!k.startsWith('sk-ant-')){stat('set-ant-status','err','Must start with sk-ant- — check you copied the right key from console.anthropic.com');return;}
+  ANT_KEY=k;
+  localStorage.setItem('ANT_KEY',k); sessionStorage.setItem('ANT_KEY',k);
+  $('set-ant-key').value=k;
+  $('ant-badge').textContent=k.slice(0,12)+'…'+k.slice(-4);
+  stat('set-ant-status','ok','✓ Key saved — persists across reloads');
+  toast('API key saved','ok');
+}
+
+async function testAntKey(){
+  let k=($('set-ant-key').value||ANT_KEY).replace(/[\s\u200B\u200C\u200D\uFEFF\u00A0]/g,'');
+  const diagEl=$('ant-diag');
+  if(!k){stat('set-ant-status','err','Enter a key first.');return;}
+  $('set-ant-key').value=k;
+  stat('set-ant-status','info','Testing…');
+  diagEl.classList.add('show');
+  const log=[];
+  log.push('Key length: '+k.length+' chars');
+  log.push('Prefix: '+k.slice(0,16)+'…');
+  log.push('Char[0] code: '+k.charCodeAt(0)+' (should be 115="s")');
+  log.push('Format: '+(k.startsWith('sk-ant-')?'✓':'✗ Wrong format'));
+  log.push('');
+  if(!k.startsWith('sk-ant-')){stat('set-ant-status','err','Wrong key format');diagEl.textContent=log.join('\n');return;}
+  log.push('Sending test request…'); diagEl.textContent=log.join('\n');
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:10,messages:[{role:'user',content:'Say OK'}]})
+    });
+    log.push('HTTP: '+resp.status+' '+resp.statusText);
+    const body=await resp.text(); log.push('Response: '+body.slice(0,300));
+    if(resp.status===200){
+      ANT_KEY=k; localStorage.setItem('ANT_KEY',k); sessionStorage.setItem('ANT_KEY',k);
+      $('ant-badge').textContent=k.slice(0,12)+'…'+k.slice(-4);
+      log.push('\n✓ API key is VALID and working!');
+      stat('set-ant-status','ok','✓ API key working!'); toast('API key verified','ok');
+    } else if(resp.status===401){ log.push('→ Invalid/expired key. Create new at console.anthropic.com'); stat('set-ant-status','err','401 — Invalid key'); }
+    else if(resp.status===403){ log.push('→ No billing credit. Add at console.anthropic.com → Billing'); stat('set-ant-status','err','403 — Add billing credit'); }
+    else { stat('set-ant-status','err','Error '+resp.status); }
+  }catch(e){
+    log.push('Fetch error: '+e.name+': '+e.message);
+    log.push('');
+    log.push('Likely causes:');
+    log.push('  1. Ad blocker blocking api.anthropic.com → try Incognito');
+    log.push('  2. Firewall/antivirus blocking outbound HTTPS');
+    log.push('  3. Test: open https://api.anthropic.com/v1/models in new tab');
+    stat('set-ant-status','err','Network blocked — see details');
+  }
+  diagEl.textContent=log.join('\n');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function loadDashboard(){
+  const hdg=$('dash-heading'),sub=$('dash-subheading');
+  if(hdg&&currentUser)hdg.textContent=currentUser.name+"'s Dashboard";
+  if(sub&&currentUser)sub.textContent='Performance overview for '+currentUser.name+'.';
+
+  const uid=currentUser?.id||'guest';
+  const atts=getUserAttempts(uid);
+
+  // Tiles
+  $('d-attempts').textContent=atts.length;
+  if(atts.length){
+    const avg=Math.round(atts.reduce((s,a)=>s+a.pct,0)/atts.length);
+    $('d-avg').textContent=avg+'%';
+    $('d-avg').className='tv '+(avg>=70?'green':avg>=50?'warn':'red');
+  }
+
+  // Recent attempts
+  if(atts.length){
+    $('d-recent').innerHTML=atts.slice(0,6).map(a=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--b1);font-size:.78rem;">
+        <span style="color:var(--tx2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:.5rem;">${a.title||'Exam'}</span>
+        <span style="color:var(--tx3);font-size:.68rem;margin-right:.5rem;">${a.completed_at?new Date(a.completed_at).toLocaleDateString('en-AU'):''}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${a.pct>=70?'var(--ok)':a.pct>=50?'var(--warn)':'var(--bad)'};">${a.pct}%</span>
+      </div>`).join('');
+  }
+
+  // Topic heatmap
+  const topicMap={};
+  atts.forEach(a=>(a.answers||[]).forEach(ans=>{
+    (ans.topic_tags||[]).forEach(t=>{
+      if(!topicMap[t])topicMap[t]={c:0,t:0};
+      topicMap[t].t++; if(ans.is_correct)topicMap[t].c++;
+    });
+  }));
+  const topicArr=Object.entries(topicMap).filter(([,v])=>v.t>=1).sort((a,b)=>b[1].t-a[1].t);
+
+  if(topicArr.length){
+    // Weak topics bar
+    const worst=Object.entries(topicMap).filter(([,v])=>v.t>=2).sort((a,b)=>(a[1].c/a[1].t)-(b[1].c/b[1].t)).slice(0,6);
+    $('d-weak').innerHTML=worst.map(([t,v])=>{
+      const pct=Math.round(v.c/v.t*100);
+      const col=pct>=70?'var(--ok)':pct>=50?'var(--warn)':'var(--bad)';
+      return `<div class="topic-row">
+        <div class="topic-name">${t}</div>
+        <div class="topic-bg"><div class="topic-fill" style="width:${pct}%;background:${col}"></div></div>
+        <div class="topic-stat" style="color:${col}">${v.c}/${v.t}</div>
+      </div>`;
+    }).join('');
+
+    // Heatmap
+    $('d-heatmap').innerHTML=`<div class="heatmap-wrap">`+topicArr.slice(0,32).map(([t,v])=>{
+      const pct=v.c/v.t;
+      const size=Math.max(34,Math.min(72,20+v.t*4));
+      const bg=pct>=.7?`rgba(16,185,129,${.3+pct*.6})`:pct>=.5?`rgba(245,158,11,${.3+pct*.5})`:`rgba(239,68,68,${.4+pct*.4})`;
+      return `<div class="hm-cell" title="${t}: ${Math.round(pct*100)}% (${v.c}/${v.t})" style="width:${size}px;height:${size}px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(255,255,255,.85);text-align:center;padding:2px;overflow:hidden;">${t.split(' ')[0].slice(0,9)}</div>`;
+    }).join('')+'</div>';
+  }
+
+  // Score-over-time chart
+  renderScoreChart(atts);
+
+  // Supabase counts
+  if(SB_KEY){
+    try{
+      const [exs,qs]=await Promise.all([sbGet('exams?select=id'),sbGet('questions?select=id')]);
+      if(Array.isArray(exs))$('d-papers').textContent=exs.length;
+      if(Array.isArray(qs))$('d-qcount').textContent=qs.length;
+    }catch(e){}
+  }
+}
+
+function renderScoreChart(atts){
+  const canvas=$('score-chart'); if(!canvas)return;
+  if(scoreChart){scoreChart.destroy();scoreChart=null;}
+  if(!atts.length){canvas.parentElement.innerHTML='<div class="empty-state" style="padding:2rem .5rem"><div class="empty-icon">📈</div><div class="empty-title">No data yet</div></div>';return;}
+  const recent=atts.slice(0,12).reverse();
+  const ctx=canvas.getContext('2d');
+  scoreChart=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:recent.map((a,i)=>(a.title||'Attempt '+(i+1)).slice(0,12)),
+      datasets:[{
+        label:'Score %',
+        data:recent.map(a=>a.pct),
+        borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.08)',
+        tension:.4,pointBackgroundColor:'#3b82f6',pointRadius:4,pointHoverRadius:6,fill:true,borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}},
+      scales:{
+        y:{min:0,max:100,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#64748b',font:{size:10},callback:v=>v+'%'}},
+        x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10},maxRotation:30}}
+      }
+    }
+  });
+}
+
+async function refreshDashboard(){
+  const btn=$('dash-refresh-btn');
+  if(btn){btn.classList.add('spin');btn.disabled=true;}
+  await loadDashboard();
+  if(btn){btn.classList.remove('spin');btn.disabled=false;}
+  toast('Dashboard refreshed','ok',2000);
+}
+
+// ── DRILL ──────────────────────────────────────────────────────
+async function loadDrillOptions(){
+  const el=$('dr-source');
+  if(el)el.onchange=()=>drSourceChange();
+  if(!SB_KEY){stat('dr-status','warn','Connect Supabase in Settings to enable drill mode.');return;}
+  try{
+    const [qs,exams]=await Promise.all([sbGet('questions?select=topic_tags'),sbGet('exams?select=id,paper_number,title,exam_series(year)&order=paper_number')]);
+    const tags=new Set();
+    if(Array.isArray(qs))qs.forEach(q=>(q.topic_tags||[]).forEach(t=>tags.add(t)));
+    const chips=$('dr-topic-chips');
+    if(chips&&tags.size)chips.innerHTML=[...tags].sort().map(t=>`<span class="chip" onclick="this.classList.toggle('on')" data-t="${t}">${t}</span>`).join('');
+    const sel=$('dr-paper-sel');
+    if(sel&&Array.isArray(exams)&&exams.length)sel.innerHTML=exams.map(e=>`<option value="${e.id}">${e.exam_series?.year||'?'} — ${e.title}</option>`).join('');
+    hideStat('dr-status');
+  }catch(e){stat('dr-status','err','DB error: '+e.message);}
+}
+
+function drSourceChange(){
+  const v=$('dr-source').value;
+  $('dr-topic-row').style.display=v==='topic'?'block':'none';
+  $('dr-paper-row').style.display=v==='paper'?'block':'none';
+}
+
+async function startDrill(){
+  if(!SB_KEY){stat('dr-status','err','Set Supabase credentials in Settings first.');return;}
+  const src=$('dr-source').value, diff=$('dr-diff').value, count=parseInt($('dr-count').value)||20;
+  stat('dr-status','info','Loading questions…');
+  try{
+    let path='questions?select=id,question_number,question_text,section,correct_answer,explanation,emq_preamble,topic_tags,difficulty,ai_generated,confidence,options(position,option_text)';
+    if(src==='paper'){ const pid=$('dr-paper-sel').value; if(pid)path+='&exam_id=eq.'+pid; }
+    if(diff!=='all')path+='&difficulty=eq.'+diff;
+    let qs=await sbGet(path+'&limit=200');
+    if(!Array.isArray(qs)||!qs.length){stat('dr-status','err','No questions found. Import an exam first.');return;}
+    if(src==='topic'){
+      const sel=[...document.querySelectorAll('#dr-topic-chips .chip.on')].map(c=>c.dataset.t);
+      if(sel.length)qs=qs.filter(q=>(q.topic_tags||[]).some(t=>sel.includes(t)));
+      if(!qs.length){stat('dr-status','err','No questions match selected topics.');return;}
+    }
+    if(src==='weak'){
+      const atts=getUserAttempts(currentUser?.id||'guest');
+      const em={};
+      atts.forEach(a=>(a.answers||[]).forEach(ans=>{const k=ans.qn;if(!em[k])em[k]={c:0,t:0};em[k].t++;if(!ans.is_correct&&!ans.is_skipped)em[k].c++;}));
+      qs.sort((a,b)=>{const pa=em[a.question_number]?em[a.question_number].c/em[a.question_number].t:.5;const pb=em[b.question_number]?em[b.question_number].c/em[b.question_number].t:.5;return pb-pa;});
+    }else if(src!=='paper'){for(let i=qs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[qs[i],qs[j]]=[qs[j],qs[i]];}}
+    qs=qs.slice(0,count);
+    const norm=qs.map(q=>({n:q.question_number,section:q.section,text:q.question_text,options:(q.options||[]).sort((a,b)=>a.position-b.position).map(o=>o.option_text),answer:q.correct_answer,explanation:q.explanation,emqNote:q.emq_preamble||undefined,topic_tags:q.topic_tags||[],ai_generated:q.ai_generated,confidence:q.confidence})).filter(q=>q.options.length>=2);
+    if(!norm.length){stat('dr-status','err','Questions found but options missing — re-import the exam.');return;}
+    hideStat('dr-status');
+    launchExam(norm,'Drill — '+(src==='weak'?'Adaptive':src==='paper'?'Paper':'Mixed'),norm.length*90);
+  }catch(e){stat('dr-status','err',e.message);}
+}
+
+// ── GENERATE — PAPER ─────────────────────────────────────────
+function genMode(m){
+  ['paper','vignette','deepdive'].forEach(x=>{
+    $('gmt-'+x)?.classList.toggle('active',x===m);
+    $('gp-'+x) && ($('gp-'+x).style.display=x===m?'block':'none');
+  });
+}
+
+async function generatePaper(){
+  const topics=[...document.querySelectorAll('#gp-topic-chips .chip.on')].map(c=>c.dataset.t);
+  if(!topics.length){stat('gp-status','err','Select at least one topic.');return;}
+  if(!ANT_KEY){stat('gp-status','err','⚠ Set Anthropic API key in Settings first.');return;}
+  const count=parseInt($('gp-count').value)||20, type=$('gp-type').value, diff=$('gp-diff').value;
+  const title=$('gp-title').value||'Generated Practice Paper';
+  stat('gp-status','info',`Generating ${count} questions… (~60s)`);
+  const typeDesc=type==='papera'?'Paper A (Medical Sciences) — mechanism-based, pharmacology-heavy':type==='paperb'?'Paper B (Clinical Applications) — clinical vignettes, patient scenarios':'Mixed Paper A and B style';
+  const prompt=`You are an expert Australian physician writing ${count} original SBA questions for the BPT/NSW-ACT FRACP Part 1 trial exam. Style: ${typeDesc}. Difficulty: ${diff==='mixed'?'realistic exam mix':diff+' focus'}. Topics: ${topics.join(', ')}.
+Return ONLY a JSON array, no markdown:
+[{"question_number":N,"section":"str","question_type":"SBA","question_text":"str","emq_preamble":null,"options":["A","B","C","D"],"correct_answer":0,"explanation":"2-3 sentences why correct + why distractors wrong","ai_generated":true,"confidence":"high","topic_tags":["tag1","tag2"],"difficulty":"easy|medium|hard","images":[]}]
+Use Australian guidelines. Questions must be original.`;
+  try{
+    const raw=await claudeCall([{role:'user',content:prompt}],10000);
+    genQs=stripJson(raw);
+    if(!genQs.length)throw new Error('No questions returned');
+    stat('gp-status','ok','✓ '+genQs.length+' questions generated!');
+    $('gp-result').style.display='block';
+    $('gp-preview').innerHTML=genQs.map(q=>`<div class="q-row"><div class="qn">Q${q.question_number}</div><div class="qt">${q.question_text.slice(0,100)}${q.question_text.length>100?'…':''}</div><div class="qa">${L[q.correct_answer]||'?'}</div></div>`).join('');
+    toast('Paper generated — '+genQs.length+' questions','ok');
+  }catch(e){stat('gp-status','err',e.message);toast('Generation failed: '+e.message,'err');}
+}
+
+function launchGeneratedPaper(){ if(!genQs.length)return; launchExam(genQs.map(q=>({...q,n:q.question_number})),$('gp-title').value||'Generated Paper',genQs.length*90); }
+function downloadGenExam(){ if(!genQs.length)return; dlBlob(buildExamHTML(genQs,{series:'BPT Trial Exam Series',year:'AI',paper:0,title:$('gp-title').value||'Practice Paper'}),'generated_exam.html','text/html'); }
+function downloadGenAnki(){ if(!genQs.length)return; dlBlob(buildAnkiTxt(genQs,'generated'),'anki_generated.txt'); }
+
+// ── GENERATE — VIGNETTE ───────────────────────────────────────
+async function vignetteToQuestions(){
+  const text=($('vig-text').value||'').trim();
+  if(!text){stat('vig-status','err','Paste a clinical vignette first.');return;}
+  if(!ANT_KEY){stat('vig-status','err','⚠ Set Anthropic API key in Settings.');return;}
+  const count=parseInt($('vig-count').value)||4, diff=$('vig-diff').value;
+  stat('vig-status','info',`Generating ${count} questions…`);
+  const prompt=`Expert medical educator. Generate ${count} SBA questions from this clinical case for the BPT trial exam. Test different aspects: diagnosis, pathophysiology, management, pharmacology, investigations. Difficulty: ${diff}.
+
+Case: ${text}
+
+Return ONLY JSON array, no markdown:
+[{"question_number":N,"section":"Paper B — Clinical Applications","question_type":"SBA","question_text":"str","emq_preamble":null,"options":["A","B","C","D"],"correct_answer":0,"explanation":"str","ai_generated":true,"confidence":"high","topic_tags":["tag"],"difficulty":"str","images":[]}]`;
+  try{
+    const raw=await claudeCall([{role:'user',content:prompt}],5000);
+    vigQs=stripJson(raw);
+    stat('vig-status','ok','✓ '+vigQs.length+' questions generated.');
+    $('vig-result').style.display='block';
+    $('vig-preview').innerHTML=vigQs.map(q=>`<div class="q-row"><div class="qn">Q${q.question_number}</div><div class="qt">${q.question_text.slice(0,100)}${q.question_text.length>100?'…':''}</div><div class="qa">${L[q.correct_answer]||'?'}</div></div>`).join('');
+    toast('Vignette questions ready','ok');
+  }catch(e){stat('vig-status','err',e.message);}
+}
+
+function launchVignettePaper(){ if(!vigQs.length)return; launchExam(vigQs.map((q,i)=>({...q,n:i+1})),'Vignette Questions',vigQs.length*120); }
+function downloadVigAnki(){ if(!vigQs.length)return; dlBlob(buildAnkiTxt(vigQs,'vignette'),'anki_vignette.txt'); }
+async function saveVignetteToDb(){
+  if(!vigQs.length)return;
+  stat('vig-status','info','Saving…');
+  try{
+    const ser=await sbPost('exam_series',{name:'BPT Trial Exam Series',year:'AI Generated'});
+    const sid=(Array.isArray(ser)?ser[0]:ser).id;
+    const ex=await sbPost('exams',{series_id:sid,paper_number:999,title:'Vignette Questions',time_allowed_mins:30,total_questions:vigQs.length});
+    const eid=(Array.isArray(ex)?ex[0]:ex).id;
+    for(const q of vigQs){const{options=[],...qd}=q;const qr=await sbPost('questions',{...qd,exam_id:eid});const qid=(Array.isArray(qr)?qr[0]:qr).id;if(options.length)await sbPost('options',options.map((t,i)=>({question_id:qid,position:i,option_text:t})));}
+    stat('vig-status','ok','✓ Saved to database.');
+    toast('Saved to database','ok');
+  }catch(e){stat('vig-status','err',e.message);}
+}
+
+// ── GENERATE — DEEP DIVE ──────────────────────────────────────
+async function deepDive(){
+  const q=($('dd-question').value||'').trim(), opts=($('dd-options').value||'').trim();
+  const chosen=$('dd-chosen').value, correct=$('dd-correct').value;
+  if(!q||!opts){stat('dd-status','err','Fill in the question and options.');return;}
+  if(!ANT_KEY){stat('dd-status','err','⚠ Set Anthropic API key in Settings.');return;}
+  stat('dd-status','info','Building tutorial…');
+  const prompt=`Senior Australian physician and clinical teacher. A trainee got this exam question wrong.
+
+QUESTION: ${q}
+OPTIONS: ${opts}
+Trainee answered: ${chosen}
+Correct answer: ${correct}
+
+Write a concise teaching response:
+1. WHY ${correct} is correct — mechanism/principle clearly
+2. WHY ${chosen} is wrong — the specific misconception
+3. Other distractors briefly
+4. KEY LEARNING POINT — one sentence, memorable
+5. CLINICAL PEARL — one real-world pearl
+6. TWO FOLLOW-UP QUESTIONS — same concept, different angle, with answers
+
+Tone: brilliant registrar at teaching round. Concise, no waffle. Use Australian context.`;
+  try{
+    const result=await claudeCall([{role:'user',content:prompt}],2500);
+    ddData={q,opts,chosen,correct,result};
+    $('dd-content').textContent=result;
+    $('dd-result').style.display='block';
+    hideStat('dd-status');
+    toast('Tutorial ready','ok');
+  }catch(e){stat('dd-status','err',e.message);}
+}
+
+function downloadDDAnki(){
+  if(!ddData.result)return;
+  const front=ddData.q.split('.').pop().trim().slice(0,120)+'?';
+  const back=`<b style="color:#10b981">Correct: ${ddData.correct}</b><br><br>${ddData.result.replace(/\n/g,'<br>').slice(0,800)}`;
+  dlBlob(`#separator:tab\n#html:true\n#notetype:Basic\n#deck:BPT Exam Suite::Deep Dives\n${front}\t${back}\tdeep-dive`,'anki_deepdive.txt');
+}
+
+// ── NOTES ─────────────────────────────────────────────────────
+async function loadTopics(){
+  const defaults=['cardiology','pharmacology','haematology','gastroenterology','nephrology','neurology','endocrinology','rheumatology','infectious-disease','respiratory','oncology','psychiatry','genetics','immunology','dermatology','statistics','palliative-care','toxicology'];
+  let tagMap={};
+  defaults.forEach(t=>{tagMap[t]=0;});
+  if(SB_KEY){try{const qs=await sbGet('questions?select=topic_tags');if(Array.isArray(qs))qs.forEach(q=>(q.topic_tags||[]).forEach(t=>{tagMap[t]=(tagMap[t]||0)+1;}));}catch(e){}}
+  const sorted=Object.entries(tagMap).sort((a,b)=>b[1]-a[1]);
+  $('notes-topic-grid').innerHTML=sorted.map(([t,n])=>`<div class="tg-item" onclick="selectNoteTopic('${t.replace(/'/g,"\\'")}',this)"><div class="tg-name">${t}</div><div class="tg-count">${n>0?n+' Q':'high yield'}</div></div>`).join('');
+}
+
+let selNoteTopic='';
+function selectNoteTopic(t,el){
+  document.querySelectorAll('.tg-item').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active'); selNoteTopic=t; $('notes-custom').value='';
+}
+
+async function generateNote(){
+  const topic=($('notes-custom').value||'').trim()||selNoteTopic;
+  if(!topic){stat('notes-status','err','Select a topic or type a custom one.');return;}
+  if(!ANT_KEY){stat('notes-status','err','⚠ Set Anthropic API key in Settings.');return;}
+  const style=$('notes-style').value;
+  stat('notes-status','info',`Generating notes for "${topic}"…`);
+  const styleDesc=style==='clinical'?'structured clinical reference with ASCII tables where useful (definition, pathophysiology, clinical features, investigations, management, Australian guidelines, exam traps)':style==='exam'?'high-yield exam bullets only — testable facts, key numbers, named syndromes, common traps. Dense, no prose.':'mechanism-deep: pathophysiology, cellular mechanisms, receptor pharmacology, molecular biology';
+  const prompt=`Senior Australian physician. Write a concise one-page clinical reference for BPT/FRACP Part 1 exam preparation.
+
+Topic: ${topic}
+Style: ${styleDesc}
+
+Format: clear ASCII headings (── HEADING ──), tables for comparisons/criteria, bold key numbers and drug names.
+Maximum 600 words. Dense with information. Australian context (eTG, AMH, PBS).
+Begin immediately — no preamble.`;
+  try{
+    currentNote=await claudeCall([{role:'user',content:prompt}],2500);
+    $('notes-content').textContent=currentNote;
+    $('notes-result-label').textContent=topic.toUpperCase();
+    $('notes-result').style.display='block';
+    hideStat('notes-status');
+    toast('Notes ready','ok');
+  }catch(e){stat('notes-status','err',e.message);}
+}
+
+function downloadNote(){ if(!currentNote)return; dlBlob(currentNote,(selNoteTopic||'notes').replace(/\s+/g,'_')+'_notes.txt'); }
+function noteToAnki(){
+  if(!currentNote)return;
+  const t=selNoteTopic||'topic';
+  dlBlob(`#separator:tab\n#html:true\n#notetype:Basic\n#deck:BPT Exam Suite::Notes\n${t} — summary?\t${currentNote.slice(0,1200).replace(/\t/g,' ').replace(/\n/g,'<br>')}\t${t.replace(/\s+/g,'-')} notes`,'anki_note_'+t.replace(/\s+/g,'_')+'.txt');
+}
+
+// ── IMPORT ─────────────────────────────────────────────────────
+function canImp(){ return pdfQ&&(pdfA||$('no-ans').checked); }
+function toggleNA(){
+  const na=$('no-ans').checked;
+  $('na-note').style.display=na?'block':'none';
+  $('drop-a').style.opacity=na?'0.4':'1';
+  $('drop-a').style.pointerEvents=na?'none':'';
+  $('btn-imp').disabled=!canImp();
+  $('btn-imp').textContent=na?'🧠 Generate Answers with AI':'✨ Extract with AI';
+}
+function dragOver(e,id){e.preventDefault();$(id).classList.add('drag');}
+function dragLeave(id){$(id).classList.remove('drag');}
+function drpd(e,t){e.preventDefault();dragLeave(t==='q'?'drop-q':'drop-a');const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')setF2(t,f);}
+function setF(e,t){const f=e.target.files[0];if(f)setF2(t,f);}
+function setF2(t,f){
+  if(t==='q'){pdfQ=f;$('qlbl').textContent='✓ '+f.name;$('drop-q').classList.add('loaded');$('clrq').style.display='block';}
+  else{pdfA=f;$('albl').textContent='✓ '+f.name;$('drop-a').classList.add('loaded');$('clra').style.display='block';}
+  $('btn-imp').disabled=!canImp();
+}
+function clrDrop(e,t){
+  e.stopPropagation();
+  if(t==='q'){pdfQ=null;b64Q=null;$('qlbl').textContent='Click or drag PDF';$('drop-q').classList.remove('loaded');$('clrq').style.display='none';$('inp-q').value='';}
+  else{pdfA=null;b64A=null;$('albl').textContent='Click or drag PDF';$('drop-a').classList.remove('loaded');$('clra').style.display='none';$('inp-a').value='';}
+  $('btn-imp').disabled=!canImp();
+}
+function f2b64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});}
+
+async function startImport(){
+  const na=$('no-ans').checked;
+  importMeta={series:$('m-series').value.trim(),year:$('m-year').value.trim(),paper:parseInt($('m-paper').value),title:$('m-title').value.trim(),date:$('m-date').value,aiGenerated:na};
+  $('imp-step0').style.display='none'; $('imp-step1').style.display='block';
+  pi(0,'run','Converting PDFs…');
+  try{b64Q=await f2b64(pdfQ);b64A=na?null:(pdfA?await f2b64(pdfA):null);pi(0,'done',pdfQ.name+(b64A?' + '+pdfA.name:' (Q only)'));}
+  catch(e){pi(0,'err',e.message);return;}
+  pi(1,'run',na?'Claude reasoning… (~90s)':'Extracting… (~60s)');
+  let raw;
+  try{raw=await importCallClaude(na);pi(1,'done','Response received');}
+  catch(e){pi(1,'err',e.message);stat('imp-status','err','Claude error: '+e.message);return;}
+  pi(2,'run','Parsing…');
+  try{
+    importedQs=stripJson(raw);
+    importedQs.forEach((q,i)=>{if(typeof q.question_number!=='number')q.question_number=i+1;if(!Array.isArray(q.options))q.options=[];if(typeof q.correct_answer!=='number')q.correct_answer=0;if(!Array.isArray(q.topic_tags))q.topic_tags=[];if(!Array.isArray(q.images))q.images=[];});
+    pi(2,'done',importedQs.length+' questions validated');
+  }catch(e){pi(2,'err',e.message);stat('imp-status','err','Parse failed: '+e.message);return;}
+  pi(3,'run','Saving to database…');
+  try{const res=await importToSupabase(importedQs,importMeta);pi(3,'done',`${res.saved} questions saved`);}
+  catch(e){pi(3,'err',e.message);stat('imp-status','warn','DB save failed: '+e.message+' — files still downloadable');}
+  pi(4,'run','Building files…');
+  await sleep(300); pi(4,'done','All ready');
+  $('imp-step1').style.display='none'; $('imp-step2').style.display='block';
+  renderImportResults();
+  toast(`Import complete — ${importedQs.length} questions`,'ok');
+}
+
+async function importCallClaude(na){
+  const label=`${importMeta.year} ${importMeta.title}`;
+  const fields=`[{"question_number":N,"section":"str|null","question_type":"SBA|EMQ","question_text":"str","emq_preamble":"str|null","options":["A text","B text","C text","D text"],"correct_answer":0,"explanation":"2-3 sentences","ai_generated":bool,"confidence":"high|medium|low","topic_tags":["tag"],"difficulty":"easy|medium|hard","images":[{"caption":"desc","display_order":0}]}]`;
+  if(na){
+    return claudeCall([{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64Q}},{type:'text',text:`Senior Australian physician. Extract every question, determine correct answer from medical knowledge. Return ONLY JSON array.\n${fields}\nai_generated:true. Low confidence → prefix "⚠ AMBIGUOUS: ". Use eTG/AMH/PBS. Exam: ${label}`}]}],8000);
+  }else{
+    return claudeCall([{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64Q}},{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64A}},{type:'text',text:`Extract ALL questions (doc1=questions, doc2=answers). Return ONLY JSON array.\n${fields}\nai_generated:false,confidence:"high". Explanations 2 sentences. Exam: ${label}`}]}],8000);
+  }
+}
+
+async function importToSupabase(qs,meta){
+  if(!SB_KEY)throw new Error('No Supabase key');
+  const h=sbH({'Prefer':'return=representation'}),hm=sbH({'Prefer':'return=minimal'});
+  let sid;
+  const sc=await fetch(`${SB_URL}/rest/v1/exam_series?name=eq.${encodeURIComponent(meta.series)}&year=eq.${encodeURIComponent(meta.year)}&select=id`,{headers:sbH()});
+  const sr=await sc.json();
+  if(Array.isArray(sr)&&sr.length){sid=sr[0].id;}else{const ni=await fetch(`${SB_URL}/rest/v1/exam_series`,{method:'POST',headers:h,body:JSON.stringify({name:meta.series,year:meta.year})});const nr=await ni.json();if(!Array.isArray(nr)||!nr[0]?.id)throw new Error('Series create failed: '+JSON.stringify(nr).slice(0,100));sid=nr[0].id;}
+  const ei=await fetch(`${SB_URL}/rest/v1/exams`,{method:'POST',headers:h,body:JSON.stringify({series_id:sid,paper_number:meta.paper,title:meta.title,sat_date:meta.date||null,time_allowed_mins:180,total_questions:qs.length})});
+  const er=await ei.json();
+  if(!Array.isArray(er)||!er[0]?.id)throw new Error('Exam create failed: '+JSON.stringify(er).slice(0,100));
+  const eid=er[0].id;
+  let saved=0;
+  for(const q of qs){
+    const{options=[],images=[],...qd}=q;
+    const clean=Object.fromEntries(Object.entries({...qd,exam_id:eid}).filter(([,v])=>v!==undefined));
+    const qr=await fetch(`${SB_URL}/rest/v1/questions`,{method:'POST',headers:h,body:JSON.stringify(clean)});
+    const qrows=await qr.json();
+    if(!Array.isArray(qrows)||!qrows[0]?.id){console.warn('Q insert failed:',JSON.stringify(qrows).slice(0,80));continue;}
+    const qid=qrows[0].id;
+    if(options.length)await fetch(`${SB_URL}/rest/v1/options`,{method:'POST',headers:hm,body:JSON.stringify(options.map((t,i)=>({question_id:qid,position:i,option_text:t||''})))});
+    if(images.length)await fetch(`${SB_URL}/rest/v1/question_images`,{method:'POST',headers:hm,body:JSON.stringify(images.map((img,i)=>({question_id:qid,storage_path:`question-images/${qid}_${i}.png`,caption:img.caption||'',display_order:img.display_order||i})))});
+    saved++;
+  }
+  if(saved===0)throw new Error('No questions were saved to the database');
+  return{eid,saved};
+}
+
+function renderImportResults(){
+  const qs=importedQs;
+  $('ir-total').textContent=qs.length;
+  $('ir-sba').textContent=qs.filter(q=>q.question_type==='SBA').length;
+  $('ir-emq').textContent=qs.filter(q=>q.question_type==='EMQ').length;
+  $('ir-imgs').textContent=qs.filter(q=>q.images?.length).length;
+  const ai=qs.filter(q=>q.ai_generated);
+  if(ai.length){
+    const lo=ai.filter(q=>q.confidence==='low').length,me=ai.filter(q=>q.confidence==='medium').length;
+    const note=$('ir-ai-note');
+    note.innerHTML=`<div style="padding:.7rem;background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:var(--r);font-size:.78rem;color:var(--tx2);margin-bottom:.5rem;">🧠 AI-generated: High <span style="color:var(--ok)">${ai.length-me-lo}</span> · Medium <span style="color:var(--warn)">${me}</span> · ⚠ Ambiguous <span style="color:var(--bad)">${lo}</span></div>`;
+  }
+  const tm={};qs.forEach(q=>(q.topic_tags||[]).forEach(t=>{tm[t]=(tm[t]||0)+1;}));
+  $('ir-tags').innerHTML=Object.entries(tm).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([t,n])=>`<span class="chip" style="cursor:default;color:var(--ok);border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.08);">${t} <span style="opacity:.6">${n}</span></span>`).join('');
+  const imgQs=qs.filter(q=>q.images?.length);
+  if(imgQs.length){$('ir-img-card').style.display='block';$('ir-img-list').innerHTML=imgQs.map(q=>q.images.map(i=>`<div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--warn);background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:4px;padding:3px 8px;margin-bottom:3px;">Q${q.question_number} — ${i.caption}</div>`).join('')).join('');}
+}
+
+function launchImportedExam(){ const n=importedQs.map(q=>({n:q.question_number,section:q.section,text:q.question_text,options:q.options,answer:q.correct_answer,explanation:q.explanation,emqNote:q.emq_preamble||undefined,topic_tags:q.topic_tags||[],ai_generated:q.ai_generated,confidence:q.confidence})); launchExam(n,importMeta.title,10800); }
+function dlExam(){ if(!importedQs.length)return; dlBlob(buildExamHTML(importedQs,importMeta),'exam_paper'+importMeta.paper+'.html','text/html'); }
+function dlJSON(){ if(!importedQs.length)return; dlBlob(JSON.stringify({exam_series:{name:importMeta.series,year:importMeta.year},exam:{paper_number:importMeta.paper,title:importMeta.title,sat_date:importMeta.date},questions:importedQs},null,2),'seed_paper'+importMeta.paper+'.json','application/json'); }
+function dlAnki(){ if(!importedQs.length)return; dlBlob(buildAnkiTxt(importedQs,'paper'+importMeta.paper),'anki_paper'+importMeta.paper+'.txt'); }
+
+function resetImport(){
+  pdfQ=null;pdfA=null;b64Q=null;b64A=null;importedQs=[];
+  ['drop-q','drop-a'].forEach(id=>$(id).classList.remove('loaded','drag'));
+  $('qlbl').textContent='Click or drag PDF'; $('albl').textContent='Click or drag PDF';
+  ['clrq','clra'].forEach(id=>$(id).style.display='none');
+  ['inp-q','inp-a'].forEach(id=>$(id).value='');
+  $('btn-imp').disabled=true;
+  [0,1,2,3,4].forEach(i=>pi(i,'wait','Waiting…'));
+  $('imp-step0').style.display='block'; $('imp-step1').style.display='none'; $('imp-step2').style.display='none';
+}
+
+// ── ANALYSE ────────────────────────────────────────────────────
+async function loadAnalyse(){
+  const atts=getUserAttempts(currentUser?.id||'guest');
+  const em={};
+  atts.forEach(a=>(a.answers||[]).forEach(ans=>{const k='Q'+ans.qn;if(!em[k])em[k]={c:0,t:0};em[k].t++;if(!ans.is_correct&&!ans.is_skipped)em[k].c++;}));
+  const hard=Object.entries(em).filter(([,v])=>v.t>=2).sort((a,b)=>b[1].c/b[1].t-a[1].c/a[1].t).slice(0,10);
+  if(hard.length){
+    $('an-diff').innerHTML=hard.map(([k,v])=>{const e=Math.round(v.c/v.t*100);const col=e>=70?'var(--bad)':e>=50?'var(--warn)':'var(--ok)';return`<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.35rem;font-size:.78rem;"><div style="min-width:34px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);">${k}</div><div style="flex:1;height:5px;background:var(--b1);border-radius:3px;overflow:hidden;"><div style="width:${e}%;height:100%;background:${col};border-radius:3px;"></div></div><div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;min-width:42px;text-align:right;color:${col};">${e}% err</div></div>`;}).join('');
+  }
+  if(!SB_KEY){$('an-papers').innerHTML='<p style="color:var(--tx3);font-size:.8rem;">Connect Supabase in Settings to see papers.</p>';$('an-freq').innerHTML='<p style="color:var(--tx3);font-size:.8rem;">Connect Supabase to see topic frequency.</p>';return;}
+  try{
+    const [exams,qs]=await Promise.all([sbGet('exams?select=id,paper_number,title,total_questions,exam_series(year)&order=paper_number'),sbGet('questions?select=topic_tags')]);
+    if(Array.isArray(exams))$('an-papers').innerHTML=exams.length?exams.map(e=>`<div class="paper-row"><div class="pr-title">${e.exam_series?.year||''} — ${e.title}</div><div class="pr-stat">${e.total_questions||'?'} Q</div></div>`).join(''):'<div class="empty-state" style="padding:1.5rem"><div class="empty-icon">📄</div><div class="empty-title">No papers yet</div><div class="empty-sub">Import an exam to get started.</div><button class="btn btn-p btn-sm" onclick="nav(\'import\')">Import Exam →</button></div>';
+    if(Array.isArray(qs)&&qs.length){const tm={};qs.forEach(q=>(q.topic_tags||[]).forEach(t=>{tm[t]=(tm[t]||0)+1;}));const s=Object.entries(tm).sort((a,b)=>b[1]-a[1]).slice(0,15);const mx=s[0]?.[1]||1;$('an-freq').innerHTML=s.map(([t,n])=>`<div class="topic-row"><div class="topic-name">${t}</div><div class="topic-bg"><div class="topic-fill" style="width:${n/mx*100}%;background:var(--accent2)"></div></div><div class="topic-stat">${n}</div></div>`).join('');}
+  }catch(e){console.warn('Analyse error:',e);}
+}
+
+async function generateStudyPlan(){
+  if(!ANT_KEY){stat('an-plan-status','err','Set Anthropic API key in Settings first.');return;}
+  stat('an-plan-status','info','Generating study plan…');
+  const atts=getUserAttempts(currentUser?.id||'guest');
+  const td={};
+  atts.forEach(a=>(a.answers||[]).forEach(ans=>{(ans.topic_tags||[]).forEach(t=>{if(!td[t])td[t]={c:0,t:0};td[t].t++;if(ans.is_correct)td[t].c++;});}));
+  const topicSummary=Object.keys(td).length?Object.entries(td).sort((a,b)=>(a[1].c/a[1].t)-(b[1].c/b[1].t)).map(([t,v])=>`${t}: ${Math.round(v.c/v.t*100)}% (${v.t} attempts)`).join('\n'):'No attempt data yet';
+  let freq='No DB';
+  if(SB_KEY){try{const qs=await sbGet('questions?select=topic_tags');if(Array.isArray(qs)){const fm={};qs.forEach(q=>(q.topic_tags||[]).forEach(t=>{fm[t]=(fm[t]||0)+1;}));freq=Object.entries(fm).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([t,n])=>`${t}:${n}`).join(', ');}}catch(e){}}
+  const prompt=`BPT/FRACP Part 1 exam coach. Analyse this candidate and give a targeted 4-week study plan.
+
+PERFORMANCE BY TOPIC (worst first, % correct):
+${topicSummary}
+
+MOST TESTED TOPICS IN DATABASE:
+${freq}
+
+TOTAL ATTEMPTS: ${atts.length}
+
+Provide:
+1. TOP 5 PRIORITY AREAS — specific reasons
+2. WEEK-BY-WEEK PLAN — concrete focus each week
+3. EXAM STRATEGY — SBA technique based on their pattern
+4. HIGH-YIELD GAPS — frequent exam topics they struggle with
+5. STRENGTHS TO MAINTAIN
+
+Specific, actionable, Australian context. ~400 words.`;
+  try{
+    const result=await claudeCall([{role:'user',content:prompt}],2000);
+    $('an-plan-content').textContent=result;
+    $('an-plan-result').style.display='block';
+    hideStat('an-plan-status');
+    toast('Study plan ready','ok');
+  }catch(e){stat('an-plan-status','err',e.message);}
+}
+
+// ── EXAM ENGINE ────────────────────────────────────────────────
+function launchExam(qs,title,timeSecs){
+  eQs=qs; eAnswers=new Array(qs.length).fill(null);
+  eCurrent=0; eTimeLeft=timeSecs||qs.length*90; eTotalTime=eTimeLeft; eTimeUsed=0; ePaused=false; eTitle=title;
+  $('ehdr-title').textContent=title;
+  $('exam-wrap').classList.add('show');
+  $('results-wrap').classList.remove('show');
+  buildEMap(); eRender();
+  clearInterval(eTimer);
+  eTimer=setInterval(()=>{
+    if(ePaused)return;
+    eTimeLeft--; eTimeUsed++;
+    updateTimerRing();
+    if(eTimeLeft<=0){clearInterval(eTimer);submitExam();}
+  },1000);
+}
+
+function updateTimerRing(){
+  const ring=$('timer-ring-fill');
+  const txt=$('etimer');
+  const pct=eTimeLeft/eTotalTime;
+  const dash=138, offset=dash-(dash*pct);
+  if(ring){ring.style.strokeDashoffset=offset;ring.className='timer-ring-fill'+(eTimeLeft<=300?' danger':eTimeLeft<=900?' warn':'');}
+  if(txt){txt.textContent=eTimeLeft>3600?fmt(eTimeLeft):fmtShort(eTimeLeft);}
+}
+
+function exitExam(){
+  if(!confirm('Exit exam? Progress will be lost.'))return;
+  clearInterval(eTimer);
+  $('exam-wrap').classList.remove('show');
+}
+
+function etogPause(){
+  ePaused=!ePaused;
+  const ov=$('pause-ov'),btn=$('ebtn-pause'),body=document.querySelector('.exam-body');
+  if(ePaused){ov.classList.add('show');btn.textContent='▶';body.style.visibility='hidden';$('pause-disp').textContent=eTimeLeft>3600?fmt(eTimeLeft):fmtShort(eTimeLeft);}
+  else{ov.classList.remove('show');btn.textContent='⏸';body.style.visibility='visible';}
+}
+
+function buildEMap(){
+  const g=$('emap-grid');g.innerHTML='';
+  eQs.forEach((q,i)=>{const d=document.createElement('div');d.className='qdot'+(eAnswers[i]!==null?' ans':'')+(i===eCurrent?' cur':'');d.textContent=q.n||i+1;d.onclick=()=>eGoTo(i);g.appendChild(d);});
+}
+function updEMap(){document.querySelectorAll('.qdot').forEach((d,i)=>{d.className='qdot'+(eAnswers[i]!==null?' ans':'')+(i===eCurrent?' cur':'');});}
+function updEProg(){const an=eAnswers.filter(a=>a!==null).length;$('eprog-text').textContent=an+'/'+eQs.length;$('epfill').style.width=(an/eQs.length*100)+'%';}
+
+function eRender(){
+  const q=eQs[eCurrent]; let html='';
+  if(q.section)html+=`<div class="sec-sep">${q.section}</div>`;
+  html+=`<div class="qcard"><div class="qnum">Q${q.n||eCurrent+1} of ${eQs.length}`;
+  if(q.ai_generated){const cls=q.confidence==='low'?'ai-l':q.confidence==='medium'?'ai-m':'ai-h';html+=` <span class="ai-badge ${cls}">${q.confidence==='low'?'⚠ ambiguous':q.confidence==='medium'?'AI medium':'AI'}</span>`;}
+  html+=`</div>`;
+  if(q.emqNote)html+=`<div class="emq-pre">${q.emqNote.replace(/\n/g,'<br>')}</div>`;
+  html+=`<div class="qtext">${q.text}</div><div class="opts">`;
+  (q.options||[]).forEach((o,i)=>{const s=eAnswers[eCurrent]===i?' sel':'';html+=`<button class="opt${s}" onclick="eSel(${i})"><span class="opt-l">${L[i]}</span><span>${o}</span></button>`;});
+  html+=`</div></div>`;
+  $('eq-area').innerHTML=html;
+  $('eprev').disabled=eCurrent===0; $('enext').disabled=eCurrent===eQs.length-1;
+  updEMap(); updEProg();
+}
+
+function eSel(i){eAnswers[eCurrent]=i;eRender();}
+function eNav(d){const n=eCurrent+d;if(n>=0&&n<eQs.length){eCurrent=n;eRender();}}
+function eGoTo(i){eCurrent=i;eRender();}
+function eConfirmSubmit(){const an=eAnswers.filter(a=>a!==null).length,sk=eQs.length-an;$('emodal-msg').textContent=`${an} of ${eQs.length} answered.${sk?` ${sk} unanswered.`:''} Ready to submit?`;$('emodal').classList.add('show');}
+function submitExam(){clearInterval(eTimer);$('emodal').classList.remove('show');$('exam-wrap').classList.remove('show');showResults();}
+
+function showResults(){
+  let c=0,w=0,s=0;
+  eAnswers.forEach((a,i)=>{if(a===null)s++;else if(a===eQs[i].answer)c++;else w++;});
+  const pct=Math.round(c/eQs.length*100);
+  $('er-subtitle').textContent='Examination Complete';
+  $('er-title').textContent=eTitle;
+  $('er-score-pct').textContent=pct+'%';
+  $('er-score-pct').style.color=pct>=70?'var(--ok)':pct>=50?'var(--warn)':'var(--bad)';
+  $('er-c').textContent=c; $('er-w').textContent=w; $('er-s').textContent=s; $('er-t').textContent=fmtShort(eTimeUsed);
+  // Animate ring
+  setTimeout(()=>{
+    const ring=$('sr-fill');
+    if(ring){
+      const offset=339-(339*pct/100);
+      ring.style.strokeDashoffset=offset;
+      ring.style.stroke=pct>=70?'#10b981':pct>=50?'#f59e0b':'#ef4444';
+    }
+  },200);
+  if(pct>=70)shootConfetti();
+  saveAttemptToDb(c,w,s);
+  // Review
+  let html='<h3 style="margin-bottom:1rem;font-size:.95rem;color:var(--tx2);">Question Review</h3>';
+  eQs.forEach((q,i)=>{
+    const ua=eAnswers[i],ok=ua===q.answer,sk=ua===null;
+    html+=`<div class="rev-q ${sk?'rs':ok?'rc':'rw'}"><div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;"><span class="rev-badge ${sk?'rb-mu':ok?'rb-ok':'rb-bad'}">${sk?'Skipped':ok?'Correct':'Incorrect'}</span><span style="color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:.65rem;">Q${q.n||i+1}</span>${q.ai_generated?`<span class="ai-badge ${q.confidence==='low'?'ai-l':q.confidence==='medium'?'ai-m':'ai-h'}" style="font-size:.6rem;">${q.confidence==='low'?'⚠ AI':'AI'}</span>`:''}</div>`;
+    if(q.emqNote)html+=`<div style="font-size:.7rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;background:var(--s2);padding:.5rem;border-radius:4px;margin-bottom:.5rem;line-height:1.5;">${q.emqNote.replace(/\n/g,'<br>')}</div>`;
+    html+=`<div style="font-size:.82rem;color:var(--tx2);margin-bottom:.7rem;line-height:1.55;white-space:pre-wrap;">${q.text}</div><div style="display:flex;gap:.5rem;flex-wrap:wrap;">`;
+    if(!sk&&!ok)html+=`<span class="rev-ans ra-y">Yours: ${L[ua]}. ${q.options[ua]}</span>`;
+    html+=`<span class="rev-ans ra-c">✓ ${L[q.answer]}. ${q.options[q.answer]}</span></div>`;
+    if(q.explanation)html+=`<div class="exp-box"><strong>Explanation</strong>${q.explanation}</div>`;
+    html+=`</div>`;
+  });
+  $('er-review').innerHTML=html;
+  $('results-wrap').classList.add('show');
+  window.scrollTo(0,0);
+  // Update drill last result
+  $('dr-last').innerHTML=`<div class="tile-grid g4"><div class="tile"><div class="tl">Score</div><div class="tv ${pct>=70?'green':pct>=50?'warn':'red'}">${pct}%</div></div><div class="tile"><div class="tl">Correct</div><div class="tv green">${c}</div></div><div class="tile"><div class="tl">Wrong</div><div class="tv red">${w}</div></div><div class="tile"><div class="tl">Time</div><div class="tv">${fmtShort(eTimeUsed)}</div></div></div>`;
+}
+
+async function saveAttemptToDb(c,w,s){
+  const att={id:'att_'+Date.now(),user_id:currentUser?.id||'guest',user_name:currentUser?.name||'Guest',title:eTitle,score_correct:c,score_wrong:w,score_skipped:s,score_total:eQs.length,pct:Math.round(c/eQs.length*100),time_used_secs:eTimeUsed,completed_at:new Date().toISOString(),answers:eQs.map((q,i)=>({qn:q.n||i+1,topic_tags:q.topic_tags||[],is_correct:eAnswers[i]===q.answer,is_skipped:eAnswers[i]===null,selected:eAnswers[i],correct:q.answer}))};
+  const uid=currentUser?.id||'guest';
+  const stored=getUserAttempts(uid); stored.unshift(att); saveUserAttempts(uid,stored);
+  if(SB_KEY){try{await sbPost('exam_attempts',{score_correct:c,score_total:eQs.length,time_used_secs:eTimeUsed,is_complete:true,completed_at:att.completed_at});}catch(e){}}
+}
+
+function closeResults(){$('results-wrap').classList.remove('show');}
+
+function exportResultsJSON(){
+  const qs=eQs.map((q,i)=>({question_number:q.n||i+1,question_text:q.text,user_answer_index:eAnswers[i],user_answer_text:eAnswers[i]!==null?q.options[eAnswers[i]]:null,correct_answer_index:q.answer,correct_answer_text:q.options[q.answer],is_correct:eAnswers[i]===q.answer,is_skipped:eAnswers[i]===null,explanation:q.explanation}));
+  dlBlob(JSON.stringify({user:{name:currentUser?.name},exam:{title:eTitle},attempt:{sat_at:new Date().toISOString(),time_used_secs:eTimeUsed,score_correct:qs.filter(q=>q.is_correct).length,score_total:eQs.length},questions:qs},null,2),'results_'+Date.now()+'.json','application/json');
+}
+
+function exportWrongAnki(){
+  const wrong=eQs.filter((q,i)=>eAnswers[i]!==null&&eAnswers[i]!==q.answer);
+  if(!wrong.length){toast('No wrong answers to export','warn');return;}
+  dlBlob(buildAnkiTxt(wrong.map((q,i)=>({...q,question_number:q.n||i+1,question_text:q.text,options:q.options,correct_answer:q.answer,explanation:q.explanation})),'wrong'),'anki_wrong_'+Date.now()+'.txt');
+  toast('Wrong answers exported','ok');
+}
+
+// ── CONFETTI ───────────────────────────────────────────────────
+function shootConfetti(){
+  const canvas=$('confetti-canvas'); if(!canvas)return;
+  canvas.style.display='block';
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d');
+  const colors=['#3b82f6','#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+  const particles=Array.from({length:120},()=>({x:Math.random()*canvas.width,y:-10,vy:2+Math.random()*4,vx:(Math.random()-.5)*3,color:colors[Math.floor(Math.random()*colors.length)],size:4+Math.random()*6,rot:Math.random()*360,rotV:(Math.random()-.5)*8}));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{p.y+=p.vy;p.x+=p.vx;p.rot+=p.rotV;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.fillStyle=p.color;ctx.globalAlpha=Math.max(0,1-p.y/canvas.height);ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);ctx.restore();});
+    frame++;
+    if(frame<200)requestAnimationFrame(draw);
+    else{ctx.clearRect(0,0,canvas.width,canvas.height);canvas.style.display='none';}
+  }
+  draw();
+}
+
+// ── ANKI BUILDER ──────────────────────────────────────────────
+function condenseFront(q){
+  const text=q.question_text||q.text||'';
+  const sents=text.split(/(?<=[.?])\s+/);
+  let front=sents.filter(s=>s.includes('?')).pop()||sents[sents.length-1]||text;
+  front=front.replace(/^Which of the following (statements? is|are|best describes?|best explains?|most (likely|correctly|accurately))\s*/i,'').replace(/^What (is the|are the|does|would|best|mechanism)\s*/i,'').replace(/^\??\s*/,'').trim();
+  if(front.length<20)front=text.slice(0,120);
+  front=front.charAt(0).toUpperCase()+front.slice(1);
+  if(!front.endsWith('?'))front+='?';
+  return front;
+}
+
+function buildAnkiTxt(qs,tag){
+  const lines=qs.map(q=>{
+    const tags=['bpt-exam','q'+(q.question_number||q.n||'?'),...(q.topic_tags||[]),tag].join(' ');
+    const front=condenseFront(q);
+    const correct=(q.options||[])[q.correct_answer||q.answer]||'?';
+    const exp=((q.explanation||'').split('.').slice(0,3).join('.')+'.');
+    const ai=q.ai_generated?`<span style="color:${q.confidence==='low'?'#ef4444':q.confidence==='medium'?'#f59e0b':'#64748b'};font-size:.8em;"> [AI]</span>`:'';
+    const back=`<b style="color:#10b981">${L[q.correct_answer||q.answer||0]}. ${correct}</b>${ai}<br><br><span style="color:#94a3b8;font-size:.9em;">${exp}</span>`;
+    return `${front}\t${back.replace(/\t/g,' ')}\t${tags}`;
+  });
+  return `#separator:tab\n#html:true\n#notetype:Basic\n#deck:BPT Exam Suite\n`+lines.join('\n');
+}
+
+// ── HIGH YIELD DECK ──────────────────────────────────────────
+function downloadHighYield(){
+  // Embedded high yield deck (abbreviated for space - key cards)
+  const deck=`#separator:tab
+#html:true
+#notetype:Basic
+#deck:BPT Exam Suite::High Yield Facts
+APL translocation?	t(15;17) → PML-RARα → treat with ATRA + arsenic trioxide	translocations haematology AML
+CML translocation?	t(9;22) Philadelphia → BCR-ABL1 → TKIs (imatinib, dasatinib)	translocations haematology CML
+Follicular lymphoma translocation?	t(14;18) → BCL2 overexpression (anti-apoptotic)	translocations haematology lymphoma
+Burkitt lymphoma translocation?	t(8;14) → MYC/IGH overexpression → starry-sky morphology	translocations haematology lymphoma
+Mantle cell lymphoma translocation?	t(11;14) → cyclin D1 overexpression	translocations haematology lymphoma
+JAK2 V617F → which MPNs?	PV ~97%, ET ~55%, myelofibrosis ~65%	haematology myeloproliferative genetics
+Daratumumab target?	CD38 (myeloma)	haematology myeloma biologics
+HLH diagnostic criteria (5/8)?	Fever, splenomegaly, ≥2-line cytopenias, hypertriglyceridaemia/↓fibrinogen, haemophagocytosis on BM, low NK, ferritin >500, ↑sCD25	haematology HLH
+Anti-TNF biologics?	Adalimumab, infliximab, etanercept, certolizumab, golimumab	biologics rheumatology
+Anti-IL17A biologics?	Secukinumab, ixekizumab — PsA, AS, psoriasis	biologics rheumatology
+Anti-IL12/23 (p40) biologic?	Ustekinumab — Crohn's, UC, PsA, psoriasis	biologics gastroenterology rheumatology
+JAK inhibitors approved Australia?	Tofacitinib (RA/UC/PsA), baricitinib (RA), upadacitinib (RA/PsA/AS/UC/AD)	biologics rheumatology JAK PBS
+Australia RA PBS escalation?	csDMARDs (MTX ± HCQ ± SSZ) → TNFi or abatacept → alternate mechanism (tocilizumab, rituximab, JAKi)	biologics rheumatology PBS
+Australia AS PBS escalation?	NSAIDs (2 adequate trials) → TNFi or IL-17i (secukinumab) — no MTX for axial	biologics ankylosing PBS
+Amiodarone toxicities (mnemonic)?	Pulmonary, ALT↑/liver fibrosis, corneal microdeposits/optic neuropathy, thyroid (hypo or hyper), photosensitivity	antiarrhythmics pharmacology
+Flecainide contraindication?	Structural heart disease/prior MI — pro-arrhythmic (CAST trial)	antiarrhythmics pharmacology
+QT prolonging drugs?	Antipsychotics, macrolides, fluoroquinolones, azoles, methadone, ondansetron, amiodarone, sotalol, TCAs	pharmacology QT drug-safety
+HOCM murmur louder with?	Valsalva and standing (↓preload). Softer with squatting/handgrip (↑preload)	cardiology HOCM
+HOCM gene mutations?	MYH7 (β-myosin heavy chain), MYBPC3 (myosin binding protein C)	cardiology HOCM genetics
+Long QT type 1?	KCNQ1 (IKs) — exercise/swimming trigger — beta-blockers effective	cardiology LQTS genetics
+Long QT type 2?	KCNH2/HERG (IKr) — auditory stimuli/startle trigger	cardiology LQTS genetics
+Long QT type 3?	SCN5A (late Na) — sleep/bradycardia trigger — mexiletine helps	cardiology LQTS genetics
+Weight loss → neuroendocrine changes?	↓leptin, ↑ghrelin, ↓T3/T4, ↓sympathetic tone → ↑appetite + ↓BMR	endocrinology obesity neuroendocrine
+CYP450 inducers?	Rifampicin, phenytoin, carbamazepine, phenobarbitone, St John's Wort, efavirenz, chronic alcohol	pharmacology CYP450 drug-interactions
+CYP450 inhibitors?	Azoles, macrolides, ritonavir, fluoxetine, fluvoxamine, amiodarone, cimetidine, grapefruit	pharmacology CYP450 drug-interactions
+Azathioprine + allopurinol interaction?	Allopurinol inhibits XO + TPMT → ↑↑6-TGN → bone marrow toxicity — reduce AZA to 25%	pharmacology drug-interactions immunosuppression
+Hepatocellular LFT pattern — causes?	Viral hepatitis, paracetamol, isoniazid, statins, alcohol (AST:ALT >2:1)	hepatology LFTs
+Cholestatic LFT pattern — causes?	Biliary obstruction, PBC, PSC, flucloxacillin (delayed up to 6 weeks), augmentin, chlorpromazine	hepatology LFTs
+Atazanavir → LFT finding?	Indirect hyperbilirubinaemia (UGT1A1 inhibition) — benign, not hepatotoxic	HIV pharmacology hepatology
+Anti-NMDAR encephalitis — features?	Psychiatric onset → seizures → autonomic instability → orofacial dyskinesias → ovarian teratoma	immunology neurology autoantibodies
+Anti-LGI1 — hallmark?	Facio-brachial dystonic seizures (pathognomonic) + hyponatraemia	immunology neurology autoantibodies
+Anti-Jo1 — syndrome?	Antisynthetase: myopathy + ILD + arthritis + mechanic's hands + Raynaud's	immunology rheumatology autoantibodies
+Anti-MDA5 — significance?	DM + rapidly progressive ILD (poor prognosis) + amyopathic DM	immunology rheumatology autoantibodies
+Anti-Scl-70 (topoisomerase I)?	Diffuse cutaneous SSc + ILD	immunology rheumatology scleroderma
+Anti-centromere?	Limited cutaneous SSc (CREST) — ↑pulmonary hypertension risk	immunology rheumatology scleroderma
+c-ANCA (PR3) vs p-ANCA (MPO)?	c-ANCA → GPA (Wegener's). p-ANCA → MPA, EGPA, drug-induced	immunology rheumatology vasculitis
+HLA-B27 conditions?	AS (90%), reactive arthritis, uveitis, IBD-related arthropathy	rheumatology genetics HLA
+Lynch syndrome genes?	MLH1, MSH2, MSH6, PMS2 — CRC, endometrial, ovarian, urothelial	genetics oncology colorectal
+MSI-H → immunotherapy?	Pembrolizumab — high TMB → TGA approved pan-tumour	oncology immunotherapy genetics
+BRAF V600E tumours?	Melanoma (40%), papillary thyroid, CRC (poor prognosis), hairy cell leukaemia	oncology genetics
+IDH mutation glioma?	Mutant = better prognosis. Wild-type = GBM	oncology neurology genetics
+PARP inhibitors — mechanism?	Block SSB repair → synthetic lethality in BRCA1/2-deficient cells	oncology pharmacology
+CDK4/6 inhibitors — drugs?	Palbociclib, ribociclib, abemaciclib (+ aromatase inhibitor in HR+/HER2- mBC)	oncology pharmacology breast-cancer
+MEN1 tumours?	Pituitary (prolactinoma) + Parathyroid (HPT) + Pancreas (gastrinoma, insulinoma)	endocrinology genetics MEN
+MEN2A tumours?	MTC + phaeochromocytoma + primary HPT — RET mutation	endocrinology genetics MEN
+Copeptin interpretation?	↑copeptin + dilute urine = nephrogenic DI. Undetectable = complete central DI	endocrinology nephrology DI
+SGLT2i HF trials?	EMPEROR-Reduced/DAPA-HF (HFrEF) + EMPEROR-Preserved/DELIVER (HFpEF) — ↓HF hospitalisations all	cardiology heart-failure SGLT2
+IgA nephropathy progression risk?	Proteinuria >1g/day, hypertension, ↑creatinine, crescents on biopsy	nephrology IgA
+Anti-PLA2R antibodies?	Primary membranous nephropathy — titre correlates with disease activity	nephrology immunology autoantibodies
+Pemphigus vulgaris IHC?	IgG on keratinocyte surfaces (fish-net pattern) — anti-desmoglein 3	dermatology IHC
+Bullous pemphigoid IHC?	Linear IgG + C3 at BMZ (anti-BP180) — subepidermal, tense bullae	dermatology IHC
+Narcolepsy type 1 — pathophysiology?	Autoimmune destruction of hypothalamic hypocretin neurons — HLA-DQB1*0602	neurology sleep-medicine
+Huntington CAG threshold?	<26 normal · 36-39 reduced penetrance · ≥40 full penetrance — paternal anticipation	neurology genetics
+B1 receptor effects?	Heart: ↑HR, ↑contractility, ↑AV conduction, ↑renin	pharmacology autonomic
+B2 receptor effects?	Bronchodilation, uterine relaxation, vasodilation, glycogenolysis	pharmacology autonomic
+NNT formula?	1/ARR (absolute risk reduction = control rate − treatment rate)	statistics epidemiology
+PPV falls with low prevalence because?	More false positives relative to true positives as disease less common	statistics epidemiology`;
+
+  dlBlob(deck,'anki_high_yield_bpt.txt','text/plain');
+  toast('High yield deck downloaded','ok');
+  const el=$('dl-highyield'); if(el)el.style.borderColor='var(--ok)';
+}
+
+// ── STANDALONE EXAM HTML BUILDER ──────────────────────────────
+function buildExamHTML(qs, meta){
+  const ser=meta.series||'BPT Trial Exam Series', yr=meta.year||'', ttl=meta.title||'Exam';
+  const qjs=JSON.stringify(qs.map(q=>({n:q.question_number||q.n,section:q.section,text:q.question_text||q.text,options:q.options,answer:q.correct_answer||q.answer,explanation:q.explanation,emqNote:q.emq_preamble||q.emqNote||null,ai_generated:q.ai_generated,confidence:q.confidence})));
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${ttl}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,sans-serif;background:#0d1117;color:#f1f5f9;min-height:100vh;}
+#cv{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;text-align:center;}
+#cv h1{font-size:2rem;font-weight:700;margin-bottom:.3rem;background:linear-gradient(135deg,#f1f5f9,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+#cv p{color:#94a3b8;margin-bottom:2rem;}
+.start-btn{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none;padding:.9rem 2.5rem;font-size:1rem;font-weight:700;border-radius:50px;cursor:pointer;}
+#ex{display:none;} .hdr{position:sticky;top:0;background:rgba(13,17,23,.95);backdrop-filter:blur(8px);border-bottom:1px solid #1e2d42;padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.tmr{font-family:monospace;font-size:1.1rem;font-weight:700;} .tmr.w{color:#f59e0b;} .tmr.d{color:#ef4444;animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:.4}} .bod{max-width:760px;margin:0 auto;padding:1.5rem 1.25rem 6rem;}
+.qc{background:#111827;border:1px solid #1e2d42;border-radius:10px;padding:1.5rem;margin:1rem 0;}
+.qt{font-size:.93rem;line-height:1.75;margin-bottom:1.2rem;white-space:pre-wrap;}
+.opts{display:flex;flex-direction:column;gap:.45rem;}
+.opt{display:flex;align-items:flex-start;gap:.75rem;padding:.72rem .9rem;background:#1a2235;border:1.5px solid #1e2d42;border-radius:7px;cursor:pointer;font-size:.87rem;text-align:left;width:100%;color:#f1f5f9;transition:all .13s;}
+.opt:hover{border-color:#3b82f6;} .opt.sl{border-color:#3b82f6;background:rgba(59,130,246,.1);}
+.opt.ok{border-color:#10b981;background:rgba(16,185,129,.08);}
+.opt.wg{border-color:#ef4444;background:rgba(239,68,68,.08);}
+.ol{width:21px;height:21px;min-width:21px;border-radius:50%;background:#1f2a3d;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#64748b;flex-shrink:0;}
+.opt.sl .ol{background:#3b82f6;color:#fff;} .opt.ok .ol{background:#10b981;color:#fff;} .opt.wg .ol{background:#ef4444;color:#fff;}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;}
+.nb{background:#111827;color:#f1f5f9;border:1px solid #1e2d42;padding:.52rem 1.2rem;border-radius:6px;cursor:pointer;font-size:.82rem;} .nb:hover{border-color:#3b82f6;}
+.sb{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.52rem 1.5rem;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;}
+#res{display:none;} .rh{text-align:center;padding:2rem;border-bottom:1px solid #1e2d42;}
+.sc{font-size:3rem;font-weight:700;background:linear-gradient(135deg,#3b82f6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.rv{background:#111827;border:1px solid #1e2d42;border-radius:10px;padding:1.25rem;margin-bottom:.85rem;}
+.rv.rc{border-left:3px solid #10b981;} .rv.rw{border-left:3px solid #ef4444;} .rv.rs{border-left:3px solid #64748b;}
+.ex{margin-top:.75rem;background:#1a2235;border-left:2px solid #6366f1;padding:.7rem .85rem;border-radius:0 5px 5px 0;font-size:.8rem;line-height:1.65;color:#94a3b8;}
+.po{display:none;position:fixed;inset:0;background:rgba(8,11,18,.97);z-index:200;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1.25rem;}
+.po.sh{display:flex;} .pt{font-family:monospace;font-size:3rem;font-weight:700;color:#f59e0b;}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:300;}
+.mo.sh{display:flex;} .md{background:#111827;border:1px solid #2a3f5e;border-radius:14px;padding:1.75rem;max-width:400px;width:90%;text-align:center;}
+</style></head><body>
+<div id="cv"><div style="font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:#3b82f6;border:1px solid #3b82f6;padding:3px 12px;border-radius:20px;margin-bottom:1.5rem;">${ser} · ${yr}</div><h1>${ttl}</h1><p>Question Booklet · ${qs.length} questions · 3 hours</p><button class="start-btn" onclick="go()">Begin Examination →</button></div>
+<div id="ex">
+<div class="hdr"><div style="font-size:.75rem;color:#64748b;font-weight:600;">${ttl.toUpperCase()}</div><div style="display:flex;align-items:center;gap:7px;"><div class="tmr" id="tmr">3:00:00</div><button style="background:#1a2235;color:#94a3b8;border:1px solid #1e2d42;width:28px;height:28px;border-radius:6px;cursor:pointer;" id="pbtn" onclick="tp()">⏸</button></div><span style="font-size:.73rem;color:#64748b;" id="pg">0/${qs.length}</span></div>
+<div class="bod"><div id="qa"></div><div class="nav"><button class="nb" id="pv" onclick="gN(-1)">← Prev</button><button class="sb" onclick="cs()">Submit</button><button class="nb" id="nx" onclick="gN(1)">Next →</button></div></div>
+</div>
+<div id="res"><div class="rh"><div style="font-size:.65rem;color:#64748b;text-transform:uppercase;letter-spacing:2px;margin-bottom:.3rem;">Complete</div><div style="font-size:1.1rem;font-weight:600;margin-bottom:.3rem;">${ttl}</div><div class="sc" id="sc">-</div><div style="color:#94a3b8;font-size:.82rem;" id="sl">-</div><div style="display:flex;gap:1.5rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;"><div><div style="font-size:.6rem;color:#64748b;text-transform:uppercase;">Correct</div><div style="font-size:1.1rem;font-weight:700;font-family:monospace;color:#10b981;" id="rc">-</div></div><div><div style="font-size:.6rem;color:#64748b;text-transform:uppercase;">Wrong</div><div style="font-size:1.1rem;font-weight:700;font-family:monospace;color:#ef4444;" id="rw">-</div></div><div><div style="font-size:.6rem;color:#64748b;text-transform:uppercase;">Time</div><div style="font-size:1.1rem;font-weight:700;font-family:monospace;" id="rt">-</div></div></div><div style="margin-top:1rem;"><button onclick="ex()" style="background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none;padding:.65rem 1.75rem;border-radius:50px;cursor:pointer;font-size:.85rem;font-weight:600;">↓ Export JSON</button></div></div><div style="max-width:760px;margin:0 auto;padding:1.5rem;" id="rrv"></div></div>
+<div class="po" id="pov"><div style="font-family:monospace;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:#f59e0b;">Paused</div><div class="pt" id="pd">-</div><h2>Timer stopped</h2><p style="color:#94a3b8;">Answers saved.</p><button style="background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none;padding:.85rem 2.2rem;border-radius:50px;font-size:.92rem;font-weight:700;cursor:pointer;" onclick="tp()">▶ Resume</button></div>
+<div class="mo" id="smo"><div class="md"><h3 style="font-size:1rem;font-weight:700;margin-bottom:.5rem;">Submit?</h3><p id="sm" style="color:#94a3b8;font-size:.82rem;margin-bottom:1.2rem;"></p><div style="display:flex;gap:.6rem;justify-content:center;"><button style="background:#1a2235;color:#f1f5f9;border:1px solid #2a3f5e;padding:.58rem 1.2rem;border-radius:6px;cursor:pointer;" onclick="document.getElementById('smo').classList.remove('sh')">Continue</button><button style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.58rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:600;" onclick="sub()">Submit Now</button></div></div></div>
+<script>
+const QS=${qjs};const L=['A','B','C','D','E','F','G','H','I','J'];
+let cq=0,ans=new Array(QS.length).fill(null),ti=null,tl=10800,tu=0,ps=false;
+const ft=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');};
+const fs=s=>{const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');};
+function go(){document.getElementById('cv').style.display='none';document.getElementById('ex').style.display='block';rQ();ti=setInterval(()=>{if(ps)return;tl--;tu++;const e=document.getElementById('tmr');e.textContent=tl>3600?ft(tl):fs(tl);e.className='tmr'+(tl<=300?' d':tl<=900?' w':'');if(tl<=0){clearInterval(ti);sub();}},1000);}
+function tp(){ps=!ps;const o=document.getElementById('pov'),b=document.getElementById('pbtn'),bd=document.querySelector('.bod');if(ps){o.classList.add('sh');b.textContent='▶';bd.style.visibility='hidden';document.getElementById('pd').textContent=tl>3600?ft(tl):fs(tl);}else{o.classList.remove('sh');b.textContent='⏸';bd.style.visibility='visible';}}
+function rQ(){const q=QS[cq];let h=\`<div class="qc"><div style="font-family:monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:2px;color:#3b82f6;margin-bottom:.6rem;">Q\${q.n||cq+1} of \${QS.length}</div>\`;if(q.emqNote)h+=\`<div style="background:#1a2235;border:1px solid #1e2d42;border-radius:6px;padding:.8rem;margin-bottom:1rem;font-size:.8rem;font-family:monospace;color:#94a3b8;line-height:1.6;">\${q.emqNote.replace(/\\n/g,'<br>')}</div>\`;h+=\`<div class="qt">\${q.text}</div><div class="opts">\`;(q.options||[]).forEach((o,i)=>{h+=\`<button class="opt\${ans[cq]===i?' sl':''}" onclick="sel(\${i})"><span class="ol">\${L[i]}</span><span>\${o}</span></button>\`;});h+=\`</div></div>\`;document.getElementById('qa').innerHTML=h;document.getElementById('pv').disabled=cq===0;document.getElementById('nx').disabled=cq===QS.length-1;document.getElementById('pg').textContent=ans.filter(a=>a!==null).length+'/'+QS.length;}
+function sel(i){ans[cq]=i;rQ();}
+function gN(d){const n=cq+d;if(n>=0&&n<QS.length){cq=n;rQ();}}
+function cs(){const an=ans.filter(a=>a!==null).length,sk=QS.length-an;document.getElementById('sm').textContent=an+' of '+QS.length+' answered.'+(sk?' '+sk+' unanswered.':'');document.getElementById('smo').classList.add('sh');}
+function sub(){clearInterval(ti);document.getElementById('smo').classList.remove('sh');document.getElementById('ex').style.display='none';sr();}
+function sr(){let c=0,w=0,s=0;ans.forEach((a,i)=>{if(a===null)s++;else if(a===QS[i].answer)c++;else w++;});const pct=Math.round(c/QS.length*100);document.getElementById('sc').textContent=pct+'%';document.getElementById('sl').textContent=c+' of '+QS.length+' correct';document.getElementById('rc').textContent=c;document.getElementById('rw').textContent=w;document.getElementById('rt').textContent=fs(tu);let h='';QS.forEach((q,i)=>{const ua=ans[i],ok=ua===q.answer,sk=ua===null;h+=\`<div class="rv \${sk?'rs':ok?'rc':'rw'}"><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;"><span style="padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:700;text-transform:uppercase;background:\${sk?'rgba(100,116,139,.1)':ok?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)'};color:\${sk?'#64748b':ok?'#10b981':'#ef4444'};">\${sk?'Skipped':ok?'Correct':'Incorrect'}</span><span style="color:#64748b;font-family:monospace;font-size:.65rem;">Q\${q.n||i+1}</span></div>\`;if(q.emqNote)h+=\`<div style="font-size:.7rem;color:#64748b;font-family:monospace;background:#1a2235;padding:.5rem;border-radius:4px;margin-bottom:.5rem;line-height:1.5;">\${q.emqNote.replace(/\\n/g,'<br>')}</div>\`;h+=\`<div style="font-size:.82rem;color:#94a3b8;margin-bottom:.65rem;line-height:1.55;white-space:pre-wrap;">\${q.text}</div>\`;if(!sk&&!ok)h+=\`<span style="padding:.32rem .75rem;border-radius:5px;font-family:monospace;font-size:.75rem;background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.2);">Yours: \${L[ua]}. \${q.options[ua]}</span> \`;h+=\`<span style="padding:.32rem .75rem;border-radius:5px;font-family:monospace;font-size:.75rem;background:rgba(16,185,129,.08);color:#10b981;border:1px solid rgba(16,185,129,.2);">✓ \${L[q.answer]}. \${q.options[q.answer]}</span>\`;if(q.explanation)h+=\`<div class="ex"><strong style="color:#8b5cf6;font-size:.62rem;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:.3rem;">Explanation</strong>\${q.explanation}</div>\`;h+=\`</div>\`;});document.getElementById('rrv').innerHTML=h;document.getElementById('res').style.display='block';window.scrollTo(0,0);}
+function ex(){let c=0,w=0,s=0;const qs=QS.map((q,i)=>{const ua=ans[i],ok=ua!==null&&ua===q.answer,sk=ua===null;if(sk)s++;else if(ok)c++;else w++;return{question_number:q.n||i+1,question_text:q.text,user_answer_index:ua,correct_answer_index:q.answer,is_correct:ok,is_skipped:sk,explanation:q.explanation};});const b=new Blob([JSON.stringify({exam:{title:'${ttl}'},attempt:{sat_at:new Date().toISOString(),time_used_secs:tu,score_correct:c,score_total:QS.length},questions:qs},null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='results_'+Date.now()+'.json';a.click();}
+<\/script></body></html>`;
+}
+
+// ── SQL FILES ─────────────────────────────────────────────────
+function dlSchema(){dlBlob(`-- BPT Exam Suite Schema
+-- Run this first in Supabase SQL Editor
+
+create extension if not exists "uuid-ossp";
+
+create table if not exists exam_series (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  year text not null,
+  created_at timestamptz default now()
+);
+
+create table if not exists exams (
+  id uuid primary key default uuid_generate_v4(),
+  series_id uuid references exam_series(id),
+  paper_number int,
+  title text,
+  sat_date date,
+  time_allowed_mins int default 180,
+  total_questions int,
+  created_at timestamptz default now()
+);
+
+create table if not exists questions (
+  id uuid primary key default uuid_generate_v4(),
+  exam_id uuid references exams(id),
+  question_number int,
+  section text,
+  question_type text default 'SBA',
+  question_text text,
+  emq_preamble text,
+  correct_answer int,
+  explanation text,
+  ai_generated boolean default false,
+  confidence text default 'high',
+  topic_tags text[],
+  difficulty text,
+  created_at timestamptz default now()
+);
+
+create table if not exists options (
+  id uuid primary key default uuid_generate_v4(),
+  question_id uuid references questions(id),
+  position int,
+  option_text text
+);
+
+create table if not exists question_images (
+  id uuid primary key default uuid_generate_v4(),
+  question_id uuid references questions(id),
+  storage_path text,
+  caption text,
+  display_order int default 0
+);
+
+create table if not exists exam_attempts (
+  id uuid primary key default uuid_generate_v4(),
+  score_correct int,
+  score_total int,
+  time_used_secs int,
+  is_complete boolean default false,
+  completed_at timestamptz,
+  notes text,
+  created_at timestamptz default now()
+);
+
+create table if not exists attempt_answers (
+  id uuid primary key default uuid_generate_v4(),
+  attempt_id uuid references exam_attempts(id),
+  question_id uuid references questions(id),
+  selected_option int,
+  is_correct boolean,
+  is_skipped boolean default false
+);
+
+alter table exam_series enable row level security;
+alter table exams enable row level security;
+alter table questions enable row level security;
+alter table options enable row level security;
+alter table question_images enable row level security;
+alter table exam_attempts enable row level security;
+alter table attempt_answers enable row level security;`,'schema.sql','text/plain');toast('schema.sql downloaded','ok');}
+
+function dlMigration(){dlBlob(`-- BPT Exam Suite RLS Migration
+-- Run AFTER schema.sql
+
+do $$ declare r record;
+begin
+  for r in (select schemaname,tablename,policyname from pg_policies where schemaname='public') loop
+    execute 'drop policy if exists '||quote_ident(r.policyname)||' on '||quote_ident(r.tablename);
+  end loop;
+end $$;
+
+create policy "Anon read exam_series"      on exam_series     for select using (true);
+create policy "Anon insert exam_series"    on exam_series     for insert with check (true);
+create policy "Anon read exams"            on exams           for select using (true);
+create policy "Anon insert exams"          on exams           for insert with check (true);
+create policy "Anon read questions"        on questions       for select using (true);
+create policy "Anon insert questions"      on questions       for insert with check (true);
+create policy "Anon read options"          on options         for select using (true);
+create policy "Anon insert options"        on options         for insert with check (true);
+create policy "Anon read question_images"  on question_images for select using (true);
+create policy "Anon insert question_images" on question_images for insert with check (true);
+create policy "Anon insert attempts"       on exam_attempts   for insert with check (true);
+create policy "Anon read attempts"         on exam_attempts   for select using (true);
+create policy "Anon update attempts"       on exam_attempts   for update using (true);
+create policy "Anon insert answers"        on attempt_answers for insert with check (true);
+create policy "Anon read answers"          on attempt_answers for select using (true);`,'rls_migration.sql','text/plain');toast('rls_migration.sql downloaded','ok');}
+
+// ── KEYBOARD SHORTCUTS ────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
+  if($('exam-wrap').classList.contains('show')){
+    if(e.key==='ArrowRight'||e.key==='n')eNav(1);
+    if(e.key==='ArrowLeft'||e.key==='p')eNav(-1);
+    if(e.key===' '){e.preventDefault();etogPause();}
+    if(['a','b','c','d','e','f','g','h','i','j'].includes(e.key.toLowerCase())){
+      const i='abcdefghij'.indexOf(e.key.toLowerCase());
+      if(i<(eQs[eCurrent]?.options?.length||0))eSel(i);
+    }
+    return;
+  }
+  if(e.key==='1')nav('dashboard');
+  if(e.key==='2')nav('drill');
+  if(e.key==='3')nav('generate');
+  if(e.key==='4')nav('notes');
+  if(e.key==='5')nav('import');
+  if(e.key==='6')nav('analyse');
+  if(e.key==='?'){toast('Shortcuts: 1-6 nav · Arrow keys in exam · A-D select answer · Space pause','info',4000);}
+});
+
+// ── INIT ─────────────────────────────────────────────────────
+function initApp(){
+  // Restore keys
+  const antKey=localStorage.getItem('ANT_KEY')||sessionStorage.getItem('ANT_KEY')||'';
+  if(antKey){ANT_KEY=antKey;const e=$('set-ant-key');if(e)e.value=antKey;$('ant-badge').textContent=antKey.slice(0,12)+'…'+antKey.slice(-4);}
+  else $('ant-badge').textContent='Anthropic key not set';
+
+  const su=localStorage.getItem('SB_URL'),sk=localStorage.getItem('SB_KEY');
+  if(su){SB_URL=su;const e=$('set-sb-url');if(e)e.value=su;}
+  if(sk){SB_KEY=sk;const e=$('set-sb-key');if(e)e.value=sk;}
+
+  // File protocol warning
+  if(window.location.protocol==='file:'){const w=$('file-protocol-warning');if(w)w.style.display='block';}
+
+  // Init user system
+  initUserSystem();
+
+  // Restore session user
+  const su2=sessionStorage.getItem('cur_user');
+  if(su2){try{currentUser=JSON.parse(su2);updateSidebarUser(currentUser);$('user-screen').classList.add('hidden');}catch(e){currentUser=null;}}
+
+  // Auto-create first user if none
+  const users=getUsers();
+  if(!currentUser&&users.length===0){
+    const u={id:'u_default',name:'Me',color:USER_COLORS[0],created:new Date().toISOString()};
+    users.push(u);saveUsers(users);currentUser=u;
+    sessionStorage.setItem('cur_user',JSON.stringify(u));
+    updateSidebarUser(u);
+    $('user-screen').classList.add('hidden');
+  } else if(!currentUser){
+    // Show user picker
+    renderUserGrid();
+  }
+
+  // Setup banner
+  if(currentUser&&(!ANT_KEY||!SB_KEY)){
+    const b=document.createElement('div');
+    b.id='setup-banner';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999;background:linear-gradient(135deg,rgba(99,102,241,.92),rgba(59,130,246,.92));color:white;padding:.55rem 1rem;font-size:.78rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;font-family:Inter,sans-serif;';
+    b.innerHTML=`<span>${!ANT_KEY&&!SB_KEY?'⚠ Add Anthropic + Supabase keys in Settings to unlock all features.':!ANT_KEY?'⚠ Anthropic API key needed for AI features.':'⚠ Supabase key needed for database features.'}</span><div style="display:flex;gap:.5rem;"><button onclick="nav('settings');this.parentElement.parentElement.remove();" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:white;padding:3px 12px;border-radius:20px;cursor:pointer;font-size:.73rem;font-weight:600;font-family:Inter,sans-serif;">Settings</button><button onclick="this.parentElement.parentElement.remove();" style="background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:1rem;line-height:1;">✕</button></div>`;
+    document.body.appendChild(b);
+  }
+
+  genMode('paper');
+  if(currentUser)loadDashboard();
+  if(SB_KEY)testSupabase().catch(()=>{});
+}
+
+window.addEventListener('load',()=>{
+  const pw=localStorage.getItem('app_password');
+  if(pw&&!sessionStorage.getItem('pw_unlocked')){
+    // Show password screen
+    $('pw-screen').classList.remove('hidden');
+    $('pw-screen').style.display='flex';
+    $('pw-input').focus();
+  } else {
+    $('pw-screen').classList.add('hidden');
+    initApp();
+  }
+});
+</script>
+</body>
+</html>
