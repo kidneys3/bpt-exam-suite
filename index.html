@@ -909,46 +909,170 @@ select option{background:var(--s2);}
       <div class="ph"><div class="ph-left"><h2>Import Exam</h2><p>PDF pair → Claude extracts → saves to database → downloads ready.</p></div></div>
 
       <div id="imp-step0">
-        <div class="card">
-          <div class="card-label">Exam PDFs</div>
-          <div class="drop-pair">
-            <div class="drop" id="drop-q" onclick="document.getElementById('inp-q').click()"
-              ondragover="dragOver(event,'drop-q')" ondragleave="dragLeave('drop-q')" ondrop="drpd(event,'q')">
-              <button class="drop-x" id="clrq" onclick="clrDrop(event,'q')" style="display:none">✕</button>
-              <input type="file" id="inp-q" accept=".pdf" onchange="setF(event,'q')">
-              <div class="drop-icon">📄</div><h4>Question Booklet</h4><p id="qlbl">Click or drag PDF</p>
-            </div>
-            <div class="drop" id="drop-a" onclick="document.getElementById('inp-a').click()"
-              ondragover="dragOver(event,'drop-a')" ondragleave="dragLeave('drop-a')" ondrop="drpd(event,'a')">
-              <button class="drop-x" id="clra" onclick="clrDrop(event,'a')" style="display:none">✕</button>
-              <input type="file" id="inp-a" accept=".pdf" onchange="setF(event,'a')">
-              <div class="drop-icon">📋</div><h4>Answer Booklet</h4><p id="albl">Click or drag PDF</p>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:9px;margin-top:.85rem;">
-            <input type="checkbox" id="no-ans" style="width:15px;height:15px;accent-color:var(--accent2);cursor:pointer;" onchange="toggleNA()">
-            <label for="no-ans" style="margin:0;cursor:pointer;font-size:.82rem;">No answer booklet — <span style="color:var(--accent2);">Claude generates answers from medical knowledge</span></label>
-          </div>
-          <div id="na-note" style="display:none;"><div class="tip" style="margin-top:.6rem;border-left-color:var(--accent2);">Claude will reason through each question and flag ambiguous ones with confidence ratings.</div></div>
+
+        <!-- Import mode tabs -->
+        <div class="mode-tabs" style="margin-bottom:1rem;">
+          <button class="mt active" id="imt-paste" onclick="impMode('paste')">📋 Paste Text</button>
+          <button class="mt" id="imt-json" onclick="impMode('json')">📦 Paste / Upload JSON</button>
+          <button class="mt" id="imt-html" onclick="impMode('html')">🖥 Upload HTML Exam</button>
+          <button class="mt" id="imt-pdf" onclick="impMode('pdf')">🤖 PDF + AI</button>
         </div>
-        <div class="card">
+
+        <!-- ── MODE: PASTE TEXT ── -->
+        <div id="imp-paste">
+          <div class="card">
+            <div class="card-label">Paste Exam Text</div>
+            <p style="margin-bottom:.85rem;">Copy the text from your PDF (Ctrl+A, Ctrl+C in any PDF viewer) and paste it below. The app parses it locally — <strong style="color:var(--ok);">no API used.</strong></p>
+            <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:var(--r);padding:.7rem .9rem;font-size:.78rem;color:var(--tx2);margin-bottom:.85rem;line-height:1.65;">
+              <strong style="color:var(--ok);">Best results from Claude.ai:</strong> Paste the PDF into a Claude.ai chat and ask:<br>
+              <em style="color:var(--tx3);">"Extract all questions as JSON using this format: [{question_number, question_type, question_text, options[], correct_answer, explanation, topic_tags[], difficulty}]"</em><br>
+              Then paste the JSON into the JSON tab. Free, fast, perfect formatting.
+            </div>
+            <label>Paste exam text here</label>
+            <textarea id="paste-text" rows="16" placeholder="Paste your exam text here...
+
+Example format the parser looks for:
+1. A 45-year-old man presents with...
+A. Option one
+B. Option two
+C. Option three
+D. Option four
+
+2. Which of the following...
+A. First option
+...
+
+The parser handles most NSW-ACT exam formats automatically."></textarea>
+            <div style="margin-top:.85rem;">
+              <label>Answers (optional — paste answer key if separate)</label>
+              <textarea id="paste-answers" rows="4" placeholder="Optional: paste answer key e.g.&#10;1. B&#10;2. D&#10;3. A&#10;...&#10;&#10;Leave blank if answers are included in the main text above."></textarea>
+            </div>
+            <div class="status" id="paste-status"></div>
+            <div class="btn-row">
+              <button class="btn btn-ok btn-lg" onclick="parsePastedText()">⚡ Parse Questions</button>
+              <button class="btn btn-ghost btn-sm" onclick="clearPaste()">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── MODE: JSON ── -->
+        <div id="imp-json" style="display:none;">
+          <div class="card">
+            <div class="card-label">Import JSON</div>
+            <p style="margin-bottom:.85rem;">Paste a <code style="font-family:'JetBrains Mono',monospace;font-size:.75rem;background:var(--s2);padding:1px 5px;border-radius:3px;">seed_data.json</code> exported from a previous session, or drop a JSON file. <strong style="color:var(--ok);">No API used.</strong></p>
+            <label>Paste JSON</label>
+            <textarea id="json-paste" rows="10" placeholder="Paste JSON here, or drop a .json file below..."></textarea>
+            <div class="drop" id="drop-json" style="margin-top:.75rem;"
+              ondragover="dragOver(event,'drop-json')" ondragleave="dragLeave('drop-json')"
+              ondrop="drpdJSON(event)" onclick="document.getElementById('inp-json').click()">
+              <input type="file" id="inp-json" accept=".json" onchange="loadJSONFile(event)" style="display:none;">
+              <div class="drop-icon">📦</div>
+              <h4>Or drop a .json file here</h4>
+              <p>seed_data.json from a previous Claude session</p>
+            </div>
+            <div class="status" id="json-status"></div>
+            <div class="btn-row">
+              <button class="btn btn-ok btn-lg" onclick="importJSON()">📦 Import JSON</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── MODE: HTML ── -->
+        <div id="imp-html" style="display:none;">
+          <div class="card">
+            <div class="card-label">Upload HTML Exam</div>
+            <p style="margin-bottom:.85rem;">Drop an HTML exam file built by Claude — it launches directly in the exam engine. <strong style="color:var(--ok);">No API used.</strong></p>
+            <div class="drop" id="drop-html"
+              ondragover="dragOver(event,'drop-html')" ondragleave="dragLeave('drop-html')"
+              ondrop="drpdHTML(event)" onclick="document.getElementById('inp-html').click()">
+              <input type="file" id="inp-html" accept=".html" onchange="loadHTMLFile(event)" style="display:none;">
+              <div class="drop-icon">🖥</div>
+              <h4>Drop HTML Exam File</h4>
+              <p id="html-drop-label">Click or drag .html file here</p>
+            </div>
+            <div class="status" id="html-status"></div>
+            <div class="btn-row" id="html-launch-row" style="display:none;">
+              <button class="btn btn-ok btn-lg" id="html-launch-btn" onclick="launchHTMLExam()">▶ Launch Exam</button>
+              <button class="btn btn-ghost btn-sm" onclick="clearHTML()">Clear</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-label">Get HTML Exams from Claude.ai</div>
+            <p>In a Claude.ai chat, upload your exam PDFs and ask:</p>
+            <div style="background:var(--s2);border-left:2px solid var(--accent);border-radius:0 var(--r) var(--r) 0;padding:.75rem .9rem;font-size:.8rem;color:var(--tx2);margin-top:.65rem;line-height:1.75;font-style:italic;">
+              "Please extract all questions from these PDFs and build me an interactive HTML exam file with a 3-hour countdown timer, question navigator, and review screen showing correct answers and explanations."
+            </div>
+            <p style="margin-top:.65rem;font-size:.78rem;color:var(--tx3);">Claude.ai handles the PDF extraction for free. Drop the resulting HTML file above to launch it here.</p>
+          </div>
+        </div>
+
+        <!-- ── MODE: PDF + AI ── -->
+        <div id="imp-pdf" style="display:none;">
+          <div class="card">
+            <div class="card-label">PDF + AI Extraction</div>
+            <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:var(--r);padding:.75rem .9rem;font-size:.78rem;color:var(--warn);margin-bottom:.85rem;">
+              ⚠ This uses the Anthropic API. Requires the Netlify proxy function to be deployed and <code style="font-family:'JetBrains Mono',monospace;background:rgba(0,0,0,.2);padding:1px 5px;border-radius:3px;">ANTHROPIC_API_KEY</code> set in Netlify environment variables. See Settings.
+            </div>
+            <div class="drop-pair">
+              <div class="drop" id="drop-q" onclick="document.getElementById('inp-q').click()"
+                ondragover="dragOver(event,'drop-q')" ondragleave="dragLeave('drop-q')" ondrop="drpd(event,'q')">
+                <button class="drop-x" id="clrq" onclick="clrDrop(event,'q')" style="display:none">✕</button>
+                <input type="file" id="inp-q" accept=".pdf" onchange="setF(event,'q')">
+                <div class="drop-icon">📄</div><h4>Question Booklet</h4><p id="qlbl">Click or drag PDF</p>
+              </div>
+              <div class="drop" id="drop-a" onclick="document.getElementById('inp-a').click()"
+                ondragover="dragOver(event,'drop-a')" ondragleave="dragLeave('drop-a')" ondrop="drpd(event,'a')">
+                <button class="drop-x" id="clra" onclick="clrDrop(event,'a')" style="display:none">✕</button>
+                <input type="file" id="inp-a" accept=".pdf" onchange="setF(event,'a')">
+                <div class="drop-icon">📋</div><h4>Answer Booklet</h4><p id="albl">Click or drag PDF</p>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:.85rem;">
+              <input type="checkbox" id="no-ans" style="width:15px;height:15px;accent-color:var(--accent2);cursor:pointer;" onchange="toggleNA()">
+              <label for="no-ans" style="margin:0;cursor:pointer;font-size:.82rem;">No answer booklet — <span style="color:var(--accent2);">Claude generates answers</span></label>
+            </div>
+            <div id="na-note" style="display:none;"><div class="tip" style="margin-top:.6rem;border-left-color:var(--accent2);">Claude will reason through each question and flag ambiguous ones.</div></div>
+          </div>
+          <div class="card">
+            <div class="card-label">Exam Details</div>
+            <div class="g2-form">
+              <div><label>Series</label><input type="text" id="m-series" value="BPT Trial Exam Series"></div>
+              <div><label>Year</label><input type="text" id="m-year" value="2023/24"></div>
+            </div>
+            <div class="g3-form" style="margin-top:.5rem;">
+              <div><label>Paper #</label><input type="number" id="m-paper" value="1" min="1"></div>
+              <div><label>Title</label><input type="text" id="m-title" value="Paper One"></div>
+              <div><label>Date</label><input type="date" id="m-date" value="2023-11-01"></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-p btn-lg" id="btn-imp" onclick="startImport()" disabled>🤖 Extract with AI</button>
+          </div>
+        </div>
+
+        <!-- Shared exam details (shown for paste/json modes after parse) -->
+        <div id="imp-meta-card" style="display:none;" class="card">
           <div class="card-label">Exam Details</div>
           <div class="g2-form">
-            <div><label>Series</label><input type="text" id="m-series" value="BPT Trial Exam Series"></div>
-            <div><label>Year</label><input type="text" id="m-year" value="2023/24"></div>
+            <div><label>Series</label><input type="text" id="m-series-shared" value="BPT Trial Exam Series"></div>
+            <div><label>Year</label><input type="text" id="m-year-shared" value="2023/24"></div>
           </div>
           <div class="g3-form" style="margin-top:.5rem;">
-            <div><label>Paper #</label><input type="number" id="m-paper" value="1" min="1"></div>
-            <div><label>Title</label><input type="text" id="m-title" value="Paper One"></div>
-            <div><label>Date</label><input type="date" id="m-date" value="2023-11-01"></div>
+            <div><label>Paper #</label><input type="number" id="m-paper-shared" value="1" min="1"></div>
+            <div><label>Title</label><input type="text" id="m-title-shared" value="Paper One"></div>
+            <div><label>Date</label><input type="date" id="m-date-shared" value="2023-11-01"></div>
+          </div>
+          <div class="status" id="meta-save-status"></div>
+          <div class="btn-row">
+            <button class="btn btn-ok btn-lg" id="btn-save-parsed" onclick="saveParsedToDb()">💾 Save to Database</button>
+            <button class="btn btn-p btn-sm" id="btn-launch-parsed" onclick="launchParsedExam()">▶ Sit Exam Now</button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadParsedAnki()">↓ Anki</button>
           </div>
         </div>
-        <div class="btn-row">
-          <button class="btn btn-p btn-lg" id="btn-imp" onclick="startImport()" disabled>✨ Extract with AI</button>
-        </div>
+
       </div>
 
-      <div id="imp-step1" style="display:none;">
+            <div id="imp-step1" style="display:none;">
         <div class="card">
           <div class="card-label">Processing</div>
           <div class="psteps" style="margin-bottom:1rem;">
@@ -1440,11 +1564,11 @@ function updateConnStatus(ok,label){
 
 // ── ANTHROPIC API ─────────────────────────────────────────────
 async function claudeCall(messages, maxTok=8000){
-  // Calls our Netlify proxy function (/api/claude) which forwards to Anthropic server-side.
+  // Calls our Netlify proxy function (/.netlify/functions/claude) which forwards to Anthropic server-side.
   // This eliminates CORS issues and keeps the API key secure in Netlify env vars.
   // Falls back to direct browser call if running locally (file:// or localhost).
   const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const endpoint = isLocal ? 'https://api.anthropic.com/v1/messages' : '/api/claude';
+  const endpoint = isLocal ? 'https://api.anthropic.com/v1/messages' : '/.netlify/functions/claude';
 
   // For local dev fallback, still need a key
   if(isLocal && !ANT_KEY){
@@ -1504,15 +1628,15 @@ async function testAntKey(){
   diagEl.classList.add('show');
   const log=[];
   const isLocal = window.location.protocol==='file:' || window.location.hostname==='localhost';
-  log.push('Environment: '+(isLocal?'LOCAL (direct API call)':'NETLIFY (proxy function /api/claude)'));
+  log.push('Environment: '+(isLocal?'LOCAL (direct API call)':'NETLIFY (proxy function /.netlify/functions/claude)'));
   log.push('');
 
   if(!isLocal){
     // Test the Netlify proxy
-    log.push('Testing Netlify proxy at /api/claude…');
+    log.push('Testing Netlify proxy at /.netlify/functions/claude…');
     diagEl.textContent=log.join('\n');
     try{
-      const resp = await fetch('/api/claude', {
+      const resp = await fetch('/.netlify/functions/claude', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:10,messages:[{role:'user',content:'Say OK'}]})
@@ -1999,15 +2123,350 @@ function dlExam(){ if(!importedQs.length)return; dlBlob(buildExamHTML(importedQs
 function dlJSON(){ if(!importedQs.length)return; dlBlob(JSON.stringify({exam_series:{name:importMeta.series,year:importMeta.year},exam:{paper_number:importMeta.paper,title:importMeta.title,sat_date:importMeta.date},questions:importedQs},null,2),'seed_paper'+importMeta.paper+'.json','application/json'); }
 function dlAnki(){ if(!importedQs.length)return; dlBlob(buildAnkiTxt(importedQs,'paper'+importMeta.paper),'anki_paper'+importMeta.paper+'.txt'); }
 
+
+// ── IMPORT MODE SWITCHER ────────────────────────────────────
+function impMode(m){
+  ['paste','json','html','pdf'].forEach(x=>{
+    const tab = $('imt-'+x), panel = $('imp-'+x);
+    if(tab) tab.classList.toggle('active', x===m);
+    if(panel) panel.style.display = x===m ? 'block' : 'none';
+  });
+  $('imp-meta-card').style.display = 'none';
+}
+
+// ── PASTE TEXT PARSER ───────────────────────────────────────
+let parsedQs = []; // holds questions from paste/json before saving
+
+function clearPaste(){
+  $('paste-text').value = '';
+  $('paste-answers').value = '';
+  parsedQs = [];
+  $('imp-meta-card').style.display = 'none';
+  hideStat('paste-status');
+}
+
+function parsePastedText(){
+  const raw = ($('paste-text').value || '').trim();
+  if(!raw){ stat('paste-status','err','Paste some text first.'); return; }
+
+  stat('paste-status','info','Parsing…');
+
+  // Parse answer key if provided separately
+  const answerRaw = ($('paste-answers').value || '').trim();
+  const answerMap = {};
+  if(answerRaw){
+    // Match patterns like "1. B", "1) B", "1: B", "1 B", "Q1 B"
+    const ansMatches = answerRaw.matchAll(/(?:Q?\s*)(\d+)[.):\s]+([A-Ja-j])/g);
+    for(const m of ansMatches){
+      answerMap[parseInt(m[1])] = m[2].toUpperCase();
+    }
+  }
+
+  // Split into question blocks
+  // Looks for lines starting with a number followed by . or ) or space
+  const lines = raw.split('\n');
+  const questions = [];
+  let currentQ = null;
+  let currentOpts = [];
+  let inOptions = false;
+
+  const qStart = /^\s*(\d+)[.)\s]\s*(.+)/;
+  const optLine = /^\s*([A-Ja-j])[.)\s]\s*(.+)/;
+  const explStart = /^\s*(explanation|answer|rationale|discussion|comment)[:.]?\s*/i;
+
+  for(let i = 0; i < lines.length; i++){
+    const line = lines[i].trim();
+    if(!line) continue;
+
+    const qMatch = line.match(qStart);
+    const optMatch = line.match(optLine);
+
+    if(qMatch && !optMatch){
+      // Could be a new question — save previous
+      if(currentQ){
+        currentQ.options = currentOpts;
+        questions.push(currentQ);
+      }
+      currentQ = {
+        question_number: parseInt(qMatch[1]),
+        question_text: qMatch[2],
+        options: [],
+        correct_answer: 0,
+        explanation: '',
+        topic_tags: [],
+        difficulty: 'medium',
+        question_type: 'SBA',
+        section: null,
+        emq_preamble: null,
+        ai_generated: false,
+        confidence: 'high',
+        images: []
+      };
+      currentOpts = [];
+      inOptions = false;
+      // Look ahead: grab multi-line question text until first option
+      while(i+1 < lines.length){
+        const next = lines[i+1].trim();
+        if(!next){ i++; continue; }
+        if(next.match(optLine)) break; // options starting
+        if(next.match(qStart)) break;  // new question
+        currentQ.question_text += ' ' + next;
+        i++;
+      }
+    } else if(optMatch && currentQ){
+      inOptions = true;
+      const optText = optMatch[2];
+      // Look ahead for continuation
+      let fullOpt = optText;
+      while(i+1 < lines.length){
+        const next = lines[i+1].trim();
+        if(!next){ break; }
+        if(next.match(optLine)) break;
+        if(next.match(qStart)) break;
+        if(next.match(explStart)) break;
+        fullOpt += ' ' + next;
+        i++;
+      }
+      currentOpts.push(fullOpt.trim());
+    } else if(currentQ && inOptions && line.match(explStart)){
+      // Explanation block
+      let exp = line.replace(explStart,'').trim();
+      while(i+1 < lines.length){
+        const next = lines[i+1].trim();
+        if(!next || next.match(qStart)) break;
+        exp += ' ' + next;
+        i++;
+      }
+      currentQ.explanation = exp.trim();
+    } else if(currentQ && inOptions && line.length > 2){
+      // Continuation of last option or stray text after options
+      if(currentOpts.length > 0){
+        currentOpts[currentOpts.length-1] += ' ' + line;
+      }
+    }
+  }
+  // Push last question
+  if(currentQ){ currentQ.options = currentOpts; questions.push(currentQ); }
+
+  if(!questions.length){
+    stat('paste-status','err','Could not parse any questions. Check the text has numbered questions (1. Question text) and lettered options (A. Option).');
+    return;
+  }
+
+  // Apply answer map if provided
+  const letterToIdx = {A:0,B:1,C:2,D:3,E:4,F:5,G:6,H:7,I:8,J:9};
+  questions.forEach(q => {
+    if(answerMap[q.question_number] !== undefined){
+      q.correct_answer = letterToIdx[answerMap[q.question_number]] || 0;
+    }
+    // Trim options
+    q.options = q.options.map(o=>o.trim()).filter(o=>o.length>0);
+    // Auto-detect EMQ if >4 options
+    if(q.options.length > 5) q.question_type = 'EMQ';
+    // Clean question text
+    q.question_text = q.question_text.trim();
+  });
+
+  parsedQs = questions;
+  const answered = questions.filter(q => answerMap[q.question_number]).length;
+  stat('paste-status','ok',
+    `✓ Parsed ${questions.length} questions (${questions.filter(q=>q.options.length>=2).length} with options, ${answered} with answers). Review details below then save.`
+  );
+  $('imp-meta-card').style.display = 'block';
+  toast(`Parsed ${questions.length} questions`,'ok');
+}
+
+// ── JSON IMPORT ──────────────────────────────────────────────
+function drpdJSON(e){
+  e.preventDefault(); dragLeave('drop-json');
+  const f = e.dataTransfer.files[0];
+  if(f && (f.type==='application/json'||f.name.endsWith('.json'))) loadJSONFile2(f);
+  else toast('Drop a .json file','err');
+}
+
+function loadJSONFile(e){ const f=e.target.files[0]; if(f) loadJSONFile2(f); }
+
+function loadJSONFile2(f){
+  const r = new FileReader();
+  r.onload = e => { $('json-paste').value = e.target.result; toast('JSON loaded: '+f.name,'ok'); };
+  r.readAsText(f);
+}
+
+function importJSON(){
+  const raw = ($('json-paste').value || '').trim();
+  if(!raw){ stat('json-status','err','Paste JSON first.'); return; }
+  try{
+    let data = JSON.parse(raw);
+    // Handle both array and {questions:[]} formats
+    if(Array.isArray(data)) parsedQs = data;
+    else if(data.questions) parsedQs = data.questions;
+    else throw new Error('Expected a JSON array or {questions:[]} object');
+
+    if(!parsedQs.length) throw new Error('No questions found in JSON');
+
+    // Normalise fields
+    parsedQs.forEach((q,i)=>{
+      if(!q.question_number) q.question_number = i+1;
+      if(!Array.isArray(q.options)) q.options = [];
+      if(typeof q.correct_answer !== 'number') q.correct_answer = 0;
+      if(!Array.isArray(q.topic_tags)) q.topic_tags = [];
+      if(!Array.isArray(q.images)) q.images = [];
+      if(!q.question_type) q.question_type = q.options.length > 4 ? 'EMQ' : 'SBA';
+    });
+
+    // Auto-fill meta if present
+    if(data.exam){
+      const e = data.exam;
+      if(e.paper_number) $('m-paper-shared').value = e.paper_number;
+      if(e.title) $('m-title-shared').value = e.title;
+      if(e.sat_date) $('m-date-shared').value = e.sat_date;
+    }
+    if(data.exam_series){
+      if(data.exam_series.name) $('m-series-shared').value = data.exam_series.name;
+      if(data.exam_series.year) $('m-year-shared').value = data.exam_series.year;
+    }
+
+    stat('json-status','ok', `✓ ${parsedQs.length} questions loaded. Fill in details below then save.`);
+    $('imp-meta-card').style.display = 'block';
+    toast(`${parsedQs.length} questions imported from JSON`,'ok');
+  }catch(e){
+    stat('json-status','err','JSON parse error: '+e.message);
+  }
+}
+
+// ── HTML EXAM UPLOAD ─────────────────────────────────────────
+let loadedHTMLExam = '';
+
+function drpdHTML(e){
+  e.preventDefault(); dragLeave('drop-html');
+  const f = e.dataTransfer.files[0];
+  if(f && f.name.endsWith('.html')) loadHTMLFile2(f);
+  else toast('Drop an .html file','err');
+}
+
+function loadHTMLFile(e){ const f=e.target.files[0]; if(f) loadHTMLFile2(f); }
+
+function loadHTMLFile2(f){
+  const r = new FileReader();
+  r.onload = e => {
+    loadedHTMLExam = e.target.result;
+    $('html-drop-label').textContent = '✓ '+f.name;
+    $('drop-html').classList.add('loaded');
+    $('html-launch-row').style.display = 'flex';
+    stat('html-status','ok','✓ HTML exam loaded: '+f.name+'. Click Launch Exam to start.');
+    toast('HTML exam ready — '+f.name,'ok');
+  };
+  r.readAsText(f);
+}
+
+function clearHTML(){
+  loadedHTMLExam='';
+  $('html-drop-label').textContent='Click or drag .html file here';
+  $('drop-html').classList.remove('loaded');
+  $('html-launch-row').style.display='none';
+  $('inp-html').value='';
+  hideStat('html-status');
+}
+
+function launchHTMLExam(){
+  if(!loadedHTMLExam){ toast('Load an HTML file first','err'); return; }
+  // Extract QS array from the HTML and launch in built-in exam engine
+  try{
+    const qsMatch = loadedHTMLExam.match(/const QS=(\[[\s\S]*?\]);/);
+    if(!qsMatch) throw new Error('Could not find question data in HTML file');
+    const qs = JSON.parse(qsMatch[1]);
+    if(!qs.length) throw new Error('No questions found');
+    // Extract title
+    const titleMatch = loadedHTMLExam.match(/<title>([^<]+)<\/title>/);
+    const title = titleMatch ? titleMatch[1] : 'Imported Exam';
+    launchExam(qs, title, 10800);
+    toast('Exam launched — '+qs.length+' questions','ok');
+  }catch(e){
+    // Fallback: open in new tab
+    const blob = new Blob([loadedHTMLExam], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    toast('Opened in new tab','info');
+  }
+}
+
+// ── SAVE PARSED/JSON TO DB ───────────────────────────────────
+async function saveParsedToDb(){
+  if(!parsedQs.length){ toast('No questions to save','err'); return; }
+  const meta = {
+    series: $('m-series-shared').value.trim() || 'BPT Trial Exam Series',
+    year:   $('m-year-shared').value.trim() || '2023/24',
+    paper:  parseInt($('m-paper-shared').value) || 1,
+    title:  $('m-title-shared').value.trim() || 'Paper One',
+    date:   $('m-date-shared').value || null,
+    aiGenerated: false
+  };
+  importMeta = meta;
+  importedQs = parsedQs;
+  if(!SB_KEY){
+    stat('meta-save-status','warn','No Supabase key set — saving locally only. Set key in Settings to save to database.');
+    showImportResults();
+    return;
+  }
+  stat('meta-save-status','info','Saving to database…');
+  try{
+    const result = await importToSupabase(parsedQs, meta);
+    stat('meta-save-status','ok',`✓ Saved ${result.saved} questions to database.`);
+    toast('Saved to database','ok');
+    showImportResults();
+  }catch(e){
+    stat('meta-save-status','err','DB error: '+e.message+' — you can still sit the exam below.');
+    importMeta = meta; importedQs = parsedQs;
+    showImportResults();
+  }
+}
+
+function launchParsedExam(){
+  if(!parsedQs.length){ toast('Parse some questions first','err'); return; }
+  const meta = {
+    title:  $('m-title-shared').value.trim() || 'Exam',
+  };
+  const norm = parsedQs.map(q=>({
+    n: q.question_number, section: q.section,
+    text: q.question_text, options: q.options,
+    answer: q.correct_answer, explanation: q.explanation,
+    emqNote: q.emq_preamble||undefined,
+    topic_tags: q.topic_tags||[], ai_generated: q.ai_generated, confidence: q.confidence
+  })).filter(q=>q.options.length>=2);
+  if(!norm.length){ toast('No questions with options found — check parse results','err'); return; }
+  launchExam(norm, meta.title, norm.length*90);
+}
+
+function downloadParsedAnki(){
+  if(!parsedQs.length){ toast('No questions to export','err'); return; }
+  dlBlob(buildAnkiTxt(parsedQs, 'imported'), 'anki_imported.txt');
+  toast('Anki deck downloaded','ok');
+}
+
+function showImportResults(){
+  $('imp-step0').style.display = 'none';
+  $('imp-step2').style.display = 'block';
+  renderImportResults();
+}
+
 function resetImport(){
-  pdfQ=null;pdfA=null;b64Q=null;b64A=null;importedQs=[];
-  ['drop-q','drop-a'].forEach(id=>$(id).classList.remove('loaded','drag'));
-  $('qlbl').textContent='Click or drag PDF'; $('albl').textContent='Click or drag PDF';
-  ['clrq','clra'].forEach(id=>$(id).style.display='none');
-  ['inp-q','inp-a'].forEach(id=>$(id).value='');
-  $('btn-imp').disabled=true;
+  pdfQ=null;pdfA=null;b64Q=null;b64A=null;importedQs=[];parsedQs=[];loadedHTMLExam='';
+  try{ ['drop-q','drop-a'].forEach(id=>{const el=$(id);if(el)el.classList.remove('loaded','drag');}); }catch(e){}
+  try{ $('qlbl').textContent='Click or drag PDF'; $('albl').textContent='Click or drag PDF'; }catch(e){}
+  try{ ['clrq','clra'].forEach(id=>{const el=$(id);if(el)el.style.display='none';}); }catch(e){}
+  try{ ['inp-q','inp-a','inp-json','inp-html'].forEach(id=>{const el=$(id);if(el)el.value='';}); }catch(e){}
+  try{ $('btn-imp').disabled=true; }catch(e){}
+  try{ $('paste-text').value=''; $('paste-answers').value=''; }catch(e){}
+  try{ $('json-paste').value=''; }catch(e){}
+  try{ $('html-drop-label').textContent='Click or drag .html file here'; }catch(e){}
+  try{ $('drop-html')?.classList.remove('loaded'); }catch(e){}
+  try{ $('html-launch-row').style.display='none'; }catch(e){}
+  try{ $('imp-meta-card').style.display='none'; }catch(e){}
   [0,1,2,3,4].forEach(i=>pi(i,'wait','Waiting…'));
-  $('imp-step0').style.display='block'; $('imp-step1').style.display='none'; $('imp-step2').style.display='none';
+  $('imp-step0').style.display='block';
+  $('imp-step1').style.display='none';
+  $('imp-step2').style.display='none';
+  impMode('paste'); // default to paste tab
 }
 
 // ── ANALYSE ────────────────────────────────────────────────────
